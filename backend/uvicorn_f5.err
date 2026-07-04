@@ -1,8 +1,0 @@
-INFO:     Started server process [44672]
-INFO:     Waiting for application startup.
-2026-07-04 15:04:32,555 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8826968239:AAFbQxtvII1M24nz5wXOAGkQ0tugNkrBeEU/getMe "HTTP/1.1 200 OK"
-2026-07-04 15:04:32,557 - telegram.ext.Application - INFO - Application started
-2026-07-04 15:04:32,836 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8826968239:AAFbQxtvII1M24nz5wXOAGkQ0tugNkrBeEU/deleteWebhook "HTTP/1.1 200 OK"
-2026-07-04 15:04:32,837 - app.main - INFO - Bot de Telegram iniciado en modo polling
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
