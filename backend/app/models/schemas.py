@@ -15,7 +15,16 @@ class ActionType(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
+class ExercisePayload(BaseModel):
+    name: str
+    sets: Optional[int] = None
+    reps: Optional[int] = None
+    weight: Optional[float] = None
+    duration_seconds: Optional[int] = None
+
+
 class ParsedPayload(BaseModel):
+    # Existentes
     amount: Optional[float] = None
     description: Optional[str] = None
     category: Optional[str] = None
@@ -23,6 +32,24 @@ class ParsedPayload(BaseModel):
     habit_name: Optional[str] = None
     task_title: Optional[str] = None
     query_target: Optional[str] = None
+
+    # LOG_STUDY
+    subject_name: Optional[str] = None
+    topic_name: Optional[str] = None
+    duration_minutes: Optional[int] = None
+    notes: Optional[str] = None
+
+    # LOG_WORKOUT
+    exercises: Optional[list[ExercisePayload]] = None
+
+    # SET_REMINDER
+    reminder_time: Optional[str] = None
+    is_recurring: Optional[bool] = None
+    recurrence_rule: Optional[str] = None
+
+    # QUERY_DATA
+    date_from: Optional[Date] = None
+    date_to: Optional[Date] = None
 
 
 class ParsedAction(BaseModel):
