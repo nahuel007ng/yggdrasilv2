@@ -1,13 +1,12 @@
-from datetime import date
-
 from app.db.supabase import get_supabase
 from app.models.schemas import ParsedPayload
+from app.services.streaks import check_perfect_week, get_habit_date, update_streak
 
 
 async def toggle_habit(payload: ParsedPayload) -> dict:
     """Marca un hábito como completado para hoy."""
     supabase = get_supabase()
-    today = (payload.date or date.today()).isoformat()
+    today = (payload.date or get_habit_date()).isoformat()
 
     # Buscar hábito por nombre (case-insensitive, búsqueda parcial)
     habit_name = payload.habit_name or ""
@@ -44,8 +43,15 @@ async def toggle_habit(payload: ParsedPayload) -> dict:
             "completed": True,
         }).execute()
 
+    # Actualizar racha y verificar semana perfecta
+    streak_result = await update_streak(habit["id"])
+    week_result = await check_perfect_week()
+
     return {
         "success": True,
+        "habit_id": habit["id"],
         "habit_name": habit["name"],
         "date": today,
+        "streak": streak_result,
+        "perfect_week": week_result,
     }

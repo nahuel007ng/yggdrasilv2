@@ -25,6 +25,37 @@ def _format_xp_feedback(xp_result: dict) -> str:
     return f"\n{feedback}"
 
 
+def _format_streak_feedback(habit_result: dict) -> str:
+    """Formatea feedback de racha para la respuesta del bot."""
+    streak_data = habit_result.get("streak")
+    week_data = habit_result.get("perfect_week")
+
+    if not streak_data:
+        return ""
+
+    parts = []
+
+    # Racha actual
+    current = streak_data.get("current_streak", 0)
+    if current > 0:
+        parts.append(f"Racha: {current} dia{'s' if current != 1 else ''}")
+
+    # Shield consumido
+    if streak_data.get("shield_consumed"):
+        remaining = streak_data.get("shields_remaining", 0)
+        parts.append(f"(shield usado, te quedan {remaining})")
+
+    # Shield ganado por semana perfecta
+    if week_data and week_data.get("shield_awarded"):
+        total = week_data.get("shields_total", 0)
+        parts.append(f"Semana perfecta! +1 shield ({total} total)")
+
+    if not parts:
+        return ""
+
+    return "\n" + " | ".join(parts)
+
+
 async def execute_action(parsed) -> str:
     """Ejecuta la acción parseada y devuelve un mensaje de respuesta para el usuario."""
     try:
@@ -44,6 +75,7 @@ async def execute_action(parsed) -> str:
                 msg = f"Hábito completado: {result['habit_name']} ({result['date']})."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
+                msg += _format_streak_feedback(result)
                 return msg
             return f"Error con hábito: {result.get('error', 'desconocido')}"
 
