@@ -1,6 +1,6 @@
 -- =============================================================
 -- Yggdrasil v2 — Schema SQL para Supabase (PostgreSQL 15+)
--- Brief: bot-telegram-mvp | Fase 03
+-- Briefs: bot-telegram-mvp, acciones-secundarias
 -- =============================================================
 
 -- 1. Categorías de gastos/ingresos
@@ -91,7 +91,55 @@ CREATE TABLE subjects (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 8. Recordatorios
+-- 8. Temas dentro de cada materia
+CREATE TABLE topics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 9. Sesiones de estudio
+CREATE TABLE study_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    subject_id UUID REFERENCES subjects(id),
+    topic_id UUID REFERENCES topics(id),
+    start_time TIMESTAMPTZ NOT NULL,
+    duration_minutes INTEGER NOT NULL DEFAULT 0,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 10. Entrenamientos
+CREATE TABLE workouts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    duration_minutes INTEGER,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 11. Ejercicios dentro de un entrenamiento
+CREATE TABLE exercises (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workout_id UUID REFERENCES workouts(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 12. Sets de cada ejercicio
+CREATE TABLE exercise_sets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    exercise_id UUID REFERENCES exercises(id) ON DELETE CASCADE,
+    set_number INTEGER NOT NULL,
+    reps INTEGER,
+    weight DOUBLE PRECISION,
+    duration_seconds INTEGER,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 14. Recordatorios
 CREATE TABLE reminders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     description TEXT NOT NULL,
@@ -103,7 +151,7 @@ CREATE TABLE reminders (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 9. Perfil y gamificación (single row)
+-- 15. Perfil y gamificación (single row)
 CREATE TABLE user_profile (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     display_name TEXT,
@@ -115,7 +163,7 @@ CREATE TABLE user_profile (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 10. Log de XP ganado
+-- 16. Log de XP ganado
 CREATE TABLE xp_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     source TEXT NOT NULL,
@@ -124,7 +172,7 @@ CREATE TABLE xp_events (
     timestamp TIMESTAMPTZ DEFAULT now()
 );
 
--- 11. Badges desbloqueados
+-- 17. Badges desbloqueados
 CREATE TABLE badges (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT NOT NULL,
