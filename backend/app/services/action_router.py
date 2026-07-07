@@ -7,6 +7,7 @@ from app.services.workouts import log_workout
 from app.services.reminders import set_reminder
 from app.services.queries import query_data
 from app.services.gamification import award_xp
+from app.services.badges import check_and_award_badges
 
 
 def _format_xp_feedback(xp_result: dict) -> str:
@@ -56,6 +57,18 @@ def _format_streak_feedback(habit_result: dict) -> str:
     return "\n" + " | ".join(parts)
 
 
+def _format_badge_feedback(badges_awarded: list[dict]) -> str:
+    """Formatea feedback de badges desbloqueados para la respuesta del bot."""
+    if not badges_awarded:
+        return ""
+
+    lines = []
+    for badge in badges_awarded:
+        lines.append(f"Badge desbloqueado: {badge['name']}!")
+
+    return "\n" + "\n".join(lines)
+
+
 async def execute_action(parsed) -> str:
     """Ejecuta la acción parseada y devuelve un mensaje de respuesta para el usuario."""
     try:
@@ -66,6 +79,11 @@ async def execute_action(parsed) -> str:
                 msg = f"Gasto registrado: {amount_str} en {result['category']}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                )
+                msg += _format_badge_feedback(badges)
                 return msg
             return f"Error al registrar gasto: {result.get('error', 'desconocido')}"
 
@@ -76,6 +94,13 @@ async def execute_action(parsed) -> str:
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 msg += _format_streak_feedback(result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                    streak_result=result.get("streak"),
+                    perfect_week_result=result.get("perfect_week"),
+                )
+                msg += _format_badge_feedback(badges)
                 return msg
             return f"Error con hábito: {result.get('error', 'desconocido')}"
 
@@ -86,6 +111,11 @@ async def execute_action(parsed) -> str:
                 msg = f"Tarea creada: {result['title']}{due}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                )
+                msg += _format_badge_feedback(badges)
                 return msg
             return f"Error al crear tarea: {result.get('error', 'desconocido')}"
 
@@ -96,6 +126,11 @@ async def execute_action(parsed) -> str:
                 msg = f"Sesión de estudio registrada: {result['subject']}{dur}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                )
+                msg += _format_badge_feedback(badges)
                 return msg
             return f"Error al registrar estudio: {result.get('error', 'desconocido')}"
 
@@ -105,6 +140,11 @@ async def execute_action(parsed) -> str:
                 msg = f"Entrenamiento registrado: {result['exercise_count']} ejercicios ({result['date']})."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                )
+                msg += _format_badge_feedback(badges)
                 return msg
             return f"Error al registrar entrenamiento: {result.get('error', 'desconocido')}"
 
@@ -116,6 +156,11 @@ async def execute_action(parsed) -> str:
                 msg = f"Recordatorio creado: {result['description']} para el {result['reminder_date']}{time_str}{recurring_str}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                )
+                msg += _format_badge_feedback(badges)
                 return msg
             return f"Error al crear recordatorio: {result.get('error', 'desconocido')}"
 
