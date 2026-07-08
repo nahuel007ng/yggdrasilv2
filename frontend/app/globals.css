@@ -1,0 +1,48 @@
+@import "tailwindcss";
+@import "nes.css/css/nes.min.css";
+
+:root {
+  --color-xp: #92cc41;
+  --color-hp: #e76e55;
+  --color-mana: #209cee;
+  --color-gold: #f7d51d;
+  --color-bg: #212529;
+  --color-text: #fff;
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-pixel), "Press Start 2P", cursive;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* NES.css dark overrides */
+.nes-container.is-dark {
+  background-color: #2d3436;
+}
+
+/* Navigation active state */
+.nav-link-active {
+  color: var(--color-gold) !important;
+}
+
+/* Scrollbar pixel art */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #636e72;
+  border: 2px solid var(--color-bg);
+}

@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     # Telegram
     telegram_bot_token: str
 
-    # LLM (OpenCode / Minimax)
-    opencode_api_key: str
-    opencode_base_url: str = "https://opencode.ai/api/v1"
-    llm_model: str = "minimax-m2.5"
+    # LLM (DeepSeek V4-Flash)
+    llm_api_key: str
+    llm_base_url: str = "https://api.deepseek.com/v1"
+    llm_model: str = "deepseek-v4-flash"
 
     # App
     debug: bool = False

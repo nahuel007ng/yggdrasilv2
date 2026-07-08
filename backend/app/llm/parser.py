@@ -27,9 +27,9 @@ async def parse_message(text: str) -> ParsedAction | ParseError:
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{settings.opencode_base_url}/chat/completions",
+                f"{settings.llm_base_url}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {settings.opencode_api_key}",
+                    "Authorization": f"Bearer {settings.llm_api_key}",
                     "Content-Type": "application/json",
                 },
                 json={
