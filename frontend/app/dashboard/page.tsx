@@ -42,10 +42,10 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="nes-container is-dark with-title">
-        <p className="title">Dashboard</p>
-        <div className="nes-container is-error">
-          <p className="text-white">Error: {error}</p>
+      <div className="pixel-card">
+        <h3 className="pixel-card-title">Dashboard</h3>
+        <div className="pixel-border-error p-4">
+          <p className="text-hp">Error: {error}</p>
         </div>
       </div>
     );
@@ -53,9 +53,9 @@ export default function DashboardPage() {
 
   if (!profile) {
     return (
-      <div className="nes-container is-dark with-title">
-        <p className="title">Dashboard</p>
-        <p className="text-white">Cargando...</p>
+      <div className="pixel-card">
+        <h3 className="pixel-card-title">Dashboard</h3>
+        <p className="text-muted">Cargando...</p>
       </div>
     );
   }

@@ -66,10 +66,10 @@ export default function HabitosPage() {
 
   if (error) {
     return (
-      <div className="nes-container is-dark with-title">
-        <p className="title">Habitos</p>
-        <div className="nes-container is-error">
-          <p className="text-white">Error: {error}</p>
+      <div className="pixel-card">
+        <h3 className="pixel-card-title">Habitos</h3>
+        <div className="pixel-border-error p-4">
+          <p className="text-hp">Error: {error}</p>
         </div>
       </div>
     );
@@ -93,9 +93,9 @@ export default function HabitosPage() {
 
       <div>
         {habits === null ? (
-          <p className="text-white">Cargando...</p>
+          <p className="text-muted">Cargando...</p>
         ) : habits.length === 0 ? (
-          <p className="text-white">No hay habitos registrados</p>
+          <p className="text-muted">No hay habitos registrados</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {habits.map((habit) => (

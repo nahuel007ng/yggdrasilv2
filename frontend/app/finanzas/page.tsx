@@ -50,21 +50,21 @@ export default function FinanzasPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between nes-container is-dark p-3">
+      <div className="flex items-center justify-between pixel-card p-3">
         <button
           type="button"
-          className="nes-btn"
+          className="pixel-btn"
           onClick={goPrev}
           disabled={!canPrev}
         >
           ◀
         </button>
-        <span className="nes-text is-primary text-xs">
+        <span className="text-mana text-pixel text-sm">
           {MONTH_NAMES[month - 1]} {year}
         </span>
         <button
           type="button"
-          className="nes-btn"
+          className="pixel-btn"
           onClick={goNext}
           disabled={!canNext}
         >

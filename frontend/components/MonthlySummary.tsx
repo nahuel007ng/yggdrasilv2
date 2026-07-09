@@ -78,7 +78,6 @@ export default function MonthlySummary({ month, year }: MonthlySummaryProps) {
       let error: string | null = null;
       if (incRes.error) error = incRes.error.message;
       if (expRes.error) error = expRes.error.message;
-      // budgets table may not exist yet — ignore errors silently
 
       const totalIncome = (incRes.data ?? []).reduce(
         (sum: number, r: { amount: number }) => sum + Number(r.amount),
@@ -110,14 +109,14 @@ export default function MonthlySummary({ month, year }: MonthlySummaryProps) {
 
   if (state.error) {
     return (
-      <div className="nes-container is-error">
-        <p className="text-white">Error: {state.error}</p>
+      <div className="pixel-card pixel-border-error">
+        <p className="text-hp">Error: {state.error}</p>
       </div>
     );
   }
 
   if (isLoading) {
-    return <p className="text-white">Cargando resumen...</p>;
+    return <p className="text-muted">Cargando resumen...</p>;
   }
 
   const balance = state.totalIncome - state.totalExpenses;
@@ -129,45 +128,42 @@ export default function MonthlySummary({ month, year }: MonthlySummaryProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div className="nes-container is-dark is-success p-3">
-        <p className="text-white text-[10px]">💰 Ingresos</p>
-        <p className="nes-text is-success text-base">
+      <div className="pixel-card">
+        <p className="text-muted text-xs mb-1">💰 Ingresos</p>
+        <p className="text-xp text-lg font-semibold">
           {formatARS(state.totalIncome)}
         </p>
       </div>
-      <div className="nes-container is-dark is-error p-3">
-        <p className="text-white text-[10px]">💸 Gastos</p>
-        <p className="nes-text is-error text-base">
+      <div className="pixel-card">
+        <p className="text-muted text-xs mb-1">💸 Gastos</p>
+        <p className="text-hp text-lg font-semibold">
           {formatARS(state.totalExpenses)}
         </p>
       </div>
-      <div
-        className={`nes-container is-dark p-3 ${
-          balance >= 0 ? "is-success" : "is-error"
-        }`}
-      >
-        <p className="text-white text-[10px]">📊 Balance</p>
+      <div className="pixel-card">
+        <p className="text-muted text-xs mb-1">📊 Balance</p>
         <p
-          className={`text-base ${
-            balance >= 0 ? "nes-text is-success" : "nes-text is-error"
+          className={`text-lg font-semibold ${
+            balance >= 0 ? "text-xp" : "text-hp"
           }`}
         >
           {formatARS(balance)}
         </p>
       </div>
       {budget !== null && budget > 0 && (
-        <div className="nes-container is-dark with-title sm:col-span-3">
-          <p className="title">Presupuesto</p>
-          <p className="text-white text-[10px] mb-2">
+        <div className="pixel-card sm:col-span-3">
+          <h3 className="pixel-card-title">Presupuesto</h3>
+          <p className="text-muted text-xs mb-2">
             Presupuesto: {formatARS(budget)} — Usado: {budgetUsage}%
           </p>
-          <progress
-            className={`nes-progress ${
-              (budgetUsage ?? 0) >= 100 ? "is-error" : "is-success"
-            }`}
-            value={budgetUsage ?? 0}
-            max={100}
-          />
+          <div className="pixel-progress">
+            <div
+              className={`pixel-progress-fill ${
+                (budgetUsage ?? 0) >= 100 ? "is-hp" : "is-xp"
+              }`}
+              style={{ width: `${budgetUsage ?? 0}%` }}
+            />
+          </div>
         </div>
       )}
     </div>

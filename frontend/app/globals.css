@@ -1,48 +1,225 @@
 @import "tailwindcss";
-@import "nes.css/css/nes.min.css";
 
 :root {
+  /* --- Fondos --- */
+  --color-bg-deep: #1a1e2e;
+  --color-bg: #252a3a;
+  --color-bg-surface: #2d3340;
+  --color-bg-surface-hover: #353b4a;
+
+  /* --- Bordes --- */
+  --color-border: #4a5568;
+  --color-border-light: #6b7280;
+  --color-border-accent: #4a9e8e;
+
+  /* --- Texto --- */
+  --color-text: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-text-heading: #f1f5f9;
+
+  /* --- Acentos RPG --- */
   --color-xp: #92cc41;
   --color-hp: #e76e55;
-  --color-mana: #209cee;
+  --color-mana: #4a9e8e;
+  --color-mana-light: #6bbfae;
   --color-gold: #f7d51d;
-  --color-bg: #212529;
-  --color-text: #fff;
+  --color-coral: #e8845a;
+  --color-coral-light: #fd9978;
+
+  /* --- Tipografia --- */
+  --font-pixel: "Press Start 2P", cursive;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* --- Spacing (multiplos de 4) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* --- Pixel border --- */
+  --pixel-size: 2px;
 }
 
 @theme inline {
-  --color-background: var(--color-bg);
+  --color-background: var(--color-bg-deep);
   --color-foreground: var(--color-text);
 }
 
 body {
-  background: var(--color-bg);
+  background: var(--color-bg-deep);
   color: var(--color-text);
-  font-family: var(--font-pixel), "Press Start 2P", cursive;
-  font-size: 12px;
-  line-height: 1.8;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-/* NES.css dark overrides */
-.nes-container.is-dark {
-  background-color: #2d3436;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-pixel);
+  color: var(--color-text-heading);
+  letter-spacing: 1px;
 }
 
-/* Navigation active state */
-.nav-link-active {
-  color: var(--color-gold) !important;
+h1 { font-size: 18px; }
+h2 { font-size: 14px; }
+h3 { font-size: 12px; }
+
+/* --- Pixel border via box-shadow --- */
+.pixel-border {
+  position: relative;
+  box-shadow:
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border),
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
+    0 var(--pixel-size) 0 0 var(--color-border);
 }
 
-/* Scrollbar pixel art */
+.pixel-border-accent {
+  box-shadow:
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-accent),
+    var(--pixel-size) 0 0 0 var(--color-border-accent),
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
+    0 var(--pixel-size) 0 0 var(--color-border-accent);
+}
+
+.pixel-border-error {
+  box-shadow:
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-hp),
+    var(--pixel-size) 0 0 0 var(--color-hp),
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-hp),
+    0 var(--pixel-size) 0 0 var(--color-hp);
+}
+
+/* --- Pixel card --- */
+.pixel-card {
+  background: var(--color-bg-surface);
+  padding: var(--space-4);
+  position: relative;
+  box-shadow:
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border),
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
+    0 var(--pixel-size) 0 0 var(--color-border);
+}
+
+.pixel-card-title {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: var(--color-mana-light);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* --- Pixel button --- */
+.pixel-btn {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-bg-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  border: none;
+  box-shadow:
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border),
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
+    0 var(--pixel-size) 0 0 var(--color-border);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.pixel-btn:hover {
+  background: var(--color-bg-surface-hover);
+}
+
+.pixel-btn:active {
+  transform: translateY(2px);
+}
+
+.pixel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pixel-btn-primary {
+  background: var(--color-mana);
+  color: #fff;
+  box-shadow:
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-mana-light),
+    var(--pixel-size) 0 0 0 var(--color-mana-light),
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-mana-light),
+    0 var(--pixel-size) 0 0 var(--color-mana-light);
+}
+
+.pixel-btn-primary:hover {
+  background: var(--color-mana-light);
+}
+
+/* --- Pixel progress bar --- */
+.pixel-progress {
+  width: 100%;
+  height: 16px;
+  background: var(--color-bg);
+  position: relative;
+  box-shadow:
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border),
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
+    0 var(--pixel-size) 0 0 var(--color-border);
+}
+
+.pixel-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.pixel-progress-fill.is-xp {
+  background: var(--color-xp);
+}
+
+.pixel-progress-fill.is-hp {
+  background: var(--color-hp);
+}
+
+.pixel-progress-fill.is-mana {
+  background: var(--color-mana);
+}
+
+.pixel-progress-fill.is-gold {
+  background: var(--color-gold);
+}
+
+/* --- Semantic text colors --- */
+.text-xp { color: var(--color-xp); }
+.text-hp { color: var(--color-hp); }
+.text-mana { color: var(--color-mana); }
+.text-gold { color: var(--color-gold); }
+.text-coral { color: var(--color-coral); }
+.text-muted { color: var(--color-text-muted); }
+
+.text-pixel {
+  font-family: var(--font-pixel);
+}
+
+/* --- Scrollbar --- */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: var(--color-bg-deep);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #636e72;
-  border: 2px solid var(--color-bg);
+  background: var(--color-border);
+  border: 2px solid var(--color-bg-deep);
+}
+
+/* --- Nav active state --- */
+.nav-link-active {
+  color: var(--color-gold) !important;
 }

@@ -13,16 +13,16 @@ import { supabase } from "@/lib/supabase";
 import { formatARS } from "./MonthlySummary";
 
 const RPG_COLORS = [
-  "#e76e55",
-  "#92cc41",
-  "#209cee",
-  "#f7d51d",
-  "#9b59b6",
-  "#e67e22",
-  "#1abc9c",
-  "#95a5a6",
-  "#e74c3c",
-  "#3498db",
+  "#e8845a",  // coral
+  "#4a9e8e",  // teal
+  "#f7d51d",  // gold
+  "#92cc41",  // xp green
+  "#e76e55",  // hp red
+  "#6bbfae",  // teal light
+  "#fd9978",  // coral light
+  "#9b59b6",  // purple
+  "#209cee",  // blue
+  "#95a5a6",  // gray
 ];
 
 export interface ExpenseChartProps {
@@ -122,15 +122,15 @@ export default function ExpenseChart({ month, year }: ExpenseChartProps) {
   const isLoading = state.loadedKey !== currentKey;
 
   return (
-    <div className="nes-container is-dark with-title h-full">
-      <p className="title">Gastos por categoria</p>
+    <div className="pixel-card h-full">
+      <h3 className="pixel-card-title">Gastos por categoria</h3>
       <div className="py-2">
-        {state.error && (
-          <p className="nes-text is-error">Error: {state.error}</p>
+        {state.error && <p className="text-hp">Error: {state.error}</p>}
+        {!state.error && isLoading && (
+          <p className="text-muted">Cargando...</p>
         )}
-        {!state.error && isLoading && <p>Cargando...</p>}
         {!state.error && !isLoading && state.data.length === 0 && (
-          <p className="text-white">Sin gastos este mes</p>
+          <p className="text-muted">Sin gastos este mes</p>
         )}
         {!state.error && !isLoading && state.data.length > 0 && (
           <ResponsiveContainer width="100%" height={300}>
@@ -154,12 +154,20 @@ export default function ExpenseChart({ month, year }: ExpenseChartProps) {
               <Tooltip
                 formatter={(value) => formatARS(Number(value))}
                 contentStyle={{
-                  backgroundColor: "#212529",
-                  border: "2px solid #fff",
-                  color: "#fff",
+                  backgroundColor: "var(--color-bg-surface)",
+                  border: "2px solid var(--color-border)",
+                  color: "var(--color-text)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "12px",
                 }}
               />
-              <Legend wrapperStyle={{ color: "#fff", fontSize: 10 }} />
+              <Legend
+                wrapperStyle={{
+                  color: "var(--color-text-muted)",
+                  fontSize: 11,
+                  fontFamily: "var(--font-mono)",
+                }}
+              />
             </PieChart>
           </ResponsiveContainer>
         )}

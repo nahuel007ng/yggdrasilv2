@@ -17,16 +17,17 @@ export default function XPBar({ totalXp, currentLevel }: XPBarProps) {
   const progress = Math.min(Math.max((xpInLevel / xpSpan) * 100, 0), 100);
 
   return (
-    <div className="nes-container is-dark with-title">
-      <p className="title">Experiencia</p>
-      <div className="flex flex-col gap-2 py-2">
-        <p className="nes-text is-primary">XP: {totalXp}</p>
-        <progress
-          className="nes-progress is-success"
-          value={progress}
-          max={100}
-        />
-        <p className="text-white text-xs">
+    <div className="pixel-card">
+      <h3 className="pixel-card-title">Experiencia</h3>
+      <div className="flex flex-col gap-3 py-2">
+        <p className="text-mana font-semibold">XP: {totalXp}</p>
+        <div className="pixel-progress">
+          <div
+            className="pixel-progress-fill is-xp"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-muted text-xs">
           {xpInLevel} / {xpSpan} XP para nivel {currentLevel + 1}
         </p>
       </div>

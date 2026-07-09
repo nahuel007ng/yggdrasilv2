@@ -26,26 +26,33 @@ export default function StreaksPanel() {
   }, []);
 
   return (
-    <div className="nes-container is-dark with-title h-full">
-      <p className="title">Rachas activas</p>
+    <div className="pixel-card h-full">
+      <h3 className="pixel-card-title">Rachas activas</h3>
       <div className="flex flex-col gap-2 py-2">
-        {error && <p className="nes-text is-error">Error: {error}</p>}
-        {!error && habits === null && <p>Cargando...</p>}
+        {error && <p className="text-hp">Error: {error}</p>}
+        {!error && habits === null && <p className="text-muted">Cargando...</p>}
         {!error && habits !== null && habits.length === 0 && (
-          <p className="text-white">No hay habitos registrados</p>
+          <p className="text-muted">No hay habitos registrados</p>
         )}
         {habits?.map((habit, i) => (
-          <p
+          <div
             key={`${habit.name}-${i}`}
-            className={
-              habit.current_streak > 0
-                ? "nes-text is-success"
-                : "text-gray-400"
-            }
+            className={`flex items-center gap-2 px-3 py-2 rounded ${
+              habit.current_streak > 0 ? "bg-[--color-bg-surface-hover]" : ""
+            }`}
           >
-            🔥 {habit.name}: {habit.current_streak} dias (record:{" "}
-            {habit.longest_streak})
-          </p>
+            <span className="text-lg">🔥</span>
+            <span
+              className={
+                habit.current_streak > 0 ? "text-xp" : "text-muted"
+              }
+            >
+              {habit.name}: {habit.current_streak} dias
+            </span>
+            <span className="text-muted text-xs ml-auto">
+              (record: {habit.longest_streak})
+            </span>
+          </div>
         ))}
       </div>
     </div>

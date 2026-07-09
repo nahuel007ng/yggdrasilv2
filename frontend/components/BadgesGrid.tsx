@@ -46,11 +46,15 @@ export default function BadgesGrid() {
   const unlockedCount = unlocked ? unlocked.size : 0;
 
   return (
-    <div className="nes-container is-dark with-title h-full">
-      <p className="title">Badges ({unlockedCount}/{total})</p>
+    <div className="pixel-card h-full">
+      <h3 className="pixel-card-title">
+        Badges ({unlockedCount}/{total})
+      </h3>
       <div className="flex flex-col gap-2 py-2">
-        {error && <p className="nes-text is-error">Error: {error}</p>}
-        {!error && unlocked === null && <p>Cargando...</p>}
+        {error && <p className="text-hp">Error: {error}</p>}
+        {!error && unlocked === null && (
+          <p className="text-muted">Cargando...</p>
+        )}
         {!error && unlocked !== null && (
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
             {ALL_CODES.map((code) => {
@@ -59,15 +63,25 @@ export default function BadgesGrid() {
               return (
                 <div
                   key={code}
-                  className={`flex flex-col items-center gap-1 p-2 nes-container is-dark rounded ${
-                    isUnlocked ? "" : "opacity-40"
+                  className={`flex flex-col items-center gap-2 p-3 pixel-card ${
+                    isUnlocked ? "" : "opacity-30"
                   }`}
                   title={isUnlocked ? info.name : "Bloqueado"}
                 >
-                  <span className="text-3xl">
+                  <span
+                    className="text-3xl"
+                    style={
+                      isUnlocked
+                        ? {
+                            textShadow:
+                              "0 0 10px rgba(74, 158, 142, 0.4)",
+                          }
+                        : {}
+                    }
+                  >
                     {isUnlocked ? info.emoji : "???"}
                   </span>
-                  <span className="text-white text-center text-[10px] break-words">
+                  <span className="text-center text-[10px] text-[--color-text-muted]">
                     {isUnlocked ? info.name : "???"}
                   </span>
                 </div>

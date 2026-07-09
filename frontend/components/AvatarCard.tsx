@@ -25,20 +25,24 @@ export default function AvatarCard({
   const emoji = AVATAR_BY_TIER[safeTier] ?? AVATAR_BY_TIER[1];
 
   return (
-    <div className="nes-container is-dark with-title">
-      <p className="title">Avatar</p>
-      <div className="flex flex-col items-center gap-2 py-2">
-        <span className="text-6xl" aria-label={`Avatar tier ${safeTier}`}>
+    <div className="pixel-card">
+      <h3 className="pixel-card-title">Avatar</h3>
+      <div className="flex flex-col items-center gap-3 py-3">
+        <span
+          className="text-6xl"
+          aria-label={`Avatar tier ${safeTier}`}
+          style={{ textShadow: "0 0 20px rgba(74, 158, 142, 0.3)" }}
+        >
           {emoji}
         </span>
-        <p className="nes-text is-primary text-base">Nivel {currentLevel}</p>
+        <p className="text-pixel text-sm text-mana">Nivel {currentLevel}</p>
         {displayName && (
-          <p className="text-white text-center break-words max-w-full">
+          <p className="text-[--color-text] text-center break-words max-w-full">
             {displayName}
           </p>
         )}
         {streakShields > 0 && (
-          <p className="nes-text is-success">🛡️ x{streakShields}</p>
+          <p className="text-xp text-sm">🛡️ x{streakShields}</p>
         )}
       </div>
     </div>

@@ -88,28 +88,36 @@ export default function TransactionList({ month, year }: TransactionListProps) {
   const isLoading = state.loadedKey !== currentKey;
 
   return (
-    <div className="nes-container is-dark with-title h-full">
-      <p className="title">Transacciones recientes</p>
+    <div className="pixel-card h-full">
+      <h3 className="pixel-card-title">Transacciones recientes</h3>
       <div className="py-2">
-        {state.error && (
-          <p className="nes-text is-error">Error: {state.error}</p>
+        {state.error && <p className="text-hp">Error: {state.error}</p>}
+        {!state.error && isLoading && (
+          <p className="text-muted">Cargando...</p>
         )}
-        {!state.error && isLoading && <p>Cargando...</p>}
         {!state.error && !isLoading && state.transactions.length === 0 && (
-          <p className="text-white">Sin transacciones este mes</p>
+          <p className="text-muted">Sin transacciones este mes</p>
         )}
         {!state.error && !isLoading && state.transactions.length > 0 && (
           <div className="overflow-x-auto">
             <table
-              className="w-full text-white text-[10px]"
+              className="w-full text-sm"
               style={{ borderCollapse: "collapse" }}
             >
               <thead>
-                <tr className="border-b-2 border-white">
-                  <th className="py-2 pr-2 text-left">Fecha</th>
-                  <th className="py-2 pr-2 text-left">Categoria</th>
-                  <th className="py-2 pr-2 text-left">Descripcion</th>
-                  <th className="py-2 pr-2 text-right">Monto</th>
+                <tr className="border-b border-[--color-border]">
+                  <th className="py-2 pr-3 text-left text-muted text-xs font-normal">
+                    Fecha
+                  </th>
+                  <th className="py-2 pr-3 text-left text-muted text-xs font-normal">
+                    Categoria
+                  </th>
+                  <th className="py-2 pr-3 text-left text-muted text-xs font-normal">
+                    Descripcion
+                  </th>
+                  <th className="py-2 pr-3 text-right text-muted text-xs font-normal">
+                    Monto
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -121,19 +129,20 @@ export default function TransactionList({ month, year }: TransactionListProps) {
                   const isIncome = t.type === "income";
                   const sign = isIncome ? "+" : "-";
                   return (
-                    <tr key={t.id} className="border-b border-gray-600">
-                      <td className="py-1 pr-2">{formatDateDDMM(t.date)}</td>
-                      <td className="py-1 pr-2">
+                    <tr
+                      key={t.id}
+                      className="border-b border-[--color-bg-surface-hover]"
+                    >
+                      <td className="py-2 pr-3">{formatDateDDMM(t.date)}</td>
+                      <td className="py-2 pr-3">
                         {icon} {cat?.name ?? "Sin categoria"}
                       </td>
-                      <td className="py-1 pr-2 break-words max-w-[200px]">
+                      <td className="py-2 pr-3 break-words max-w-[200px]">
                         {t.description || "—"}
                       </td>
                       <td
-                        className={`py-1 pr-2 text-right ${
-                          isIncome
-                            ? "nes-text is-success"
-                            : "nes-text is-error"
+                        className={`py-2 pr-3 text-right font-semibold ${
+                          isIncome ? "text-xp" : "text-hp"
                         }`}
                       >
                         {sign}

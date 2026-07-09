@@ -101,22 +101,22 @@ export default function HabitCalendar({
   const monthTitle = `${MONTH_NAMES[month - 1]} ${year}`;
 
   return (
-    <div className="nes-container is-dark with-title">
-      <p className="title">Calendario — {monthTitle}</p>
+    <div className="pixel-card">
+      <h3 className="pixel-card-title">Calendario — {monthTitle}</h3>
       <div className="flex flex-col gap-2 py-2">
         <div className="flex items-center justify-between mb-2">
           <button
             type="button"
-            className="nes-btn"
+            className="pixel-btn"
             onClick={onPrev}
             disabled={!canPrev}
           >
             ◀
           </button>
-          <span className="nes-text is-primary text-xs">{monthTitle}</span>
+          <span className="text-mana text-pixel text-xs">{monthTitle}</span>
           <button
             type="button"
-            className="nes-btn"
+            className="pixel-btn"
             onClick={onNext}
             disabled={!canNext}
           >
@@ -124,8 +124,10 @@ export default function HabitCalendar({
           </button>
         </div>
 
-        {error && <p className="nes-text is-error">Error: {error}</p>}
-        {!error && records === null && <p>Cargando...</p>}
+        {error && <p className="text-hp">Error: {error}</p>}
+        {!error && records === null && (
+          <p className="text-muted">Cargando...</p>
+        )}
 
         {!error && records !== null && (
           <div className="overflow-x-auto">
@@ -133,7 +135,7 @@ export default function HabitCalendar({
               {DOW_LABELS.map((d) => (
                 <div
                   key={d}
-                  className="text-center text-[10px] text-gray-300 py-1"
+                  className="text-center text-xs text-muted py-1"
                 >
                   {d}
                 </div>
@@ -151,15 +153,16 @@ export default function HabitCalendar({
                 const completed = dayRecords && dayRecords.size > 0;
 
                 let cellClass =
-                  "flex flex-col items-center justify-center py-2 text-[10px] border-2 ";
+                  "flex flex-col items-center justify-center py-2 text-xs ";
                 if (completed) {
-                  cellClass += "bg-green-700 border-green-500 text-white";
+                  cellClass +=
+                    "bg-[--color-xp]/20 text-xp";
                 } else if (isFuture) {
-                  cellClass += "bg-gray-700 border-gray-600 text-gray-400";
+                  cellClass += "bg-[--color-bg-surface] text-muted";
                 } else {
-                  cellClass += "bg-red-900 border-red-700 text-red-200";
+                  cellClass += "bg-[--color-hp]/15 text-hp";
                 }
-                if (isToday) cellClass += " ring-2 ring-yellow-400";
+                if (isToday) cellClass += " ring-2 ring-[--color-gold]";
 
                 return (
                   <div key={dateStr} className={cellClass}>
