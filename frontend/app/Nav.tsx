@@ -7,6 +7,9 @@ const links = [
   { href: "/dashboard", label: "Dashboard", icon: "⚔️" },
   { href: "/habitos", label: "Habitos", icon: "🔥" },
   { href: "/finanzas", label: "Finanzas", icon: "💰" },
+  { href: "/tareas", label: "Tareas", icon: "📋" },
+  { href: "/estudios", label: "Estudios", icon: "📚" },
+  { href: "/entrenamientos", label: "Entreno", icon: "💪" },
 ];
 
 export default function Nav({
