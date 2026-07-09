@@ -1,6 +1,8 @@
 -- =============================================================
 -- Yggdrasil v2 — Schema SQL para Supabase (PostgreSQL 15+)
--- Briefs: bot-telegram-mvp, acciones-secundarias
+-- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth
+-- Nota: todas las tablas tienen columna user_id UUID NOT NULL REFERENCES auth.users(id)
+--       agregada por migration-auth.sql. user_profile tiene telegram_chat_id BIGINT.
 -- =============================================================
 
 -- 1. Categorías de gastos/ingresos

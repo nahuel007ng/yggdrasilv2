@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ParsedPayload
 
 
@@ -10,11 +10,14 @@ async def log_workout(payload: ParsedPayload) -> dict:
 
     workout_date = (payload.date or date.today()).isoformat()
 
+    user_id = get_user_id()
+
     # Insertar workout
     workout = {
         "date": workout_date,
         "duration_minutes": payload.duration_minutes,
         "notes": payload.notes,
+        "user_id": user_id,
     }
     workout_result = supabase.table("workouts").insert(workout).execute()
     workout_id = workout_result.data[0]["id"]
@@ -27,6 +30,7 @@ async def log_workout(payload: ParsedPayload) -> dict:
                 "workout_id": workout_id,
                 "name": ex.name,
                 "sort_order": i,
+                "user_id": user_id,
             }
             ex_result = supabase.table("exercises").insert(exercise).execute()
             exercise_id = ex_result.data[0]["id"]
@@ -41,6 +45,7 @@ async def log_workout(payload: ParsedPayload) -> dict:
                         "reps": ex.reps,
                         "weight": ex.weight,
                         "duration_seconds": ex.duration_seconds,
+                        "user_id": user_id,
                     }
                     supabase.table("exercise_sets").insert(exercise_set).execute()
             elif ex.duration_seconds:
@@ -49,6 +54,7 @@ async def log_workout(payload: ParsedPayload) -> dict:
                     "exercise_id": exercise_id,
                     "set_number": 1,
                     "duration_seconds": ex.duration_seconds,
+                    "user_id": user_id,
                 }
                 supabase.table("exercise_sets").insert(exercise_set).execute()
 

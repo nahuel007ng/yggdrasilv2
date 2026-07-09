@@ -39,7 +39,7 @@ async def parse_message(text: str) -> ParsedAction | ParseError:
                         {"role": "user", "content": text},
                     ],
                     "temperature": 0.1,
-                    "max_tokens": 200,
+                    "max_tokens": 1024,
                 },
             )
             response.raise_for_status()

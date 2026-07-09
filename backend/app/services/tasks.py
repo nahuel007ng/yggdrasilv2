@@ -1,4 +1,4 @@
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ParsedPayload
 
 
@@ -10,6 +10,7 @@ async def add_task(payload: ParsedPayload) -> dict:
         "title": payload.task_title or payload.description or "Tarea sin título",
         "status": "todo",
         "priority": "not_urgent_not_important",
+        "user_id": get_user_id(),
     }
 
     if payload.date:

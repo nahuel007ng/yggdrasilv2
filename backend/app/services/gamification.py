@@ -1,6 +1,6 @@
 import math
 
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ActionType
 
 XP_REWARDS: dict[ActionType, int] = {
@@ -47,6 +47,7 @@ async def award_xp(action_type: ActionType, source_id: str | None = None) -> dic
         "source": action_type.value,
         "source_id": source_id,
         "amount": xp_amount,
+        "user_id": get_user_id(),
     }).execute()
 
     # 2. Leer perfil actual

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", icon: "⚔️" },
@@ -20,6 +21,7 @@ export default function Nav({
   mobile?: boolean;
 }) {
   const pathname = usePathname();
+  const { signOut } = useAuth();
 
   if (mobile) {
     return (
@@ -44,6 +46,13 @@ export default function Nav({
             </Link>
           );
         })}
+        <button
+          onClick={signOut}
+          className="flex flex-col items-center gap-1 py-2 px-3 text-[10px] transition-colors relative text-hp hover:text-[--color-text]"
+        >
+          <span className="text-2xl">🚪</span>
+          Salir
+        </button>
       </div>
     );
   }
@@ -68,6 +77,14 @@ export default function Nav({
             </Link>
           );
         })}
+        <div className="flex-1" />
+        <button
+          onClick={signOut}
+          className="flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px] text-hp hover:bg-[--color-bg-surface-hover] hover:text-[--color-text] border-transparent"
+        >
+          <span className="text-lg">🚪</span>
+          Salir
+        </button>
       </>
     );
   }

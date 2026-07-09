@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ParsedPayload
 
 
@@ -48,6 +48,7 @@ async def log_study(payload: ParsedPayload) -> dict:
         "start_time": start_time,
         "duration_minutes": payload.duration_minutes or 0,
         "notes": payload.notes,
+        "user_id": get_user_id(),
     }
 
     supabase.table("study_sessions").insert(session).execute()

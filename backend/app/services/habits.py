@@ -1,4 +1,4 @@
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ParsedPayload
 from app.services.streaks import check_perfect_week, get_habit_date, update_streak
 
@@ -41,6 +41,7 @@ async def toggle_habit(payload: ParsedPayload) -> dict:
             "habit_id": habit["id"],
             "date": today,
             "completed": True,
+            "user_id": get_user_id(),
         }).execute()
 
     # Actualizar racha y verificar semana perfecta

@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ParsedPayload
 
 
@@ -17,6 +17,7 @@ async def set_reminder(payload: ParsedPayload) -> dict:
         "reminder_time": payload.reminder_time,
         "is_recurring": payload.is_recurring or False,
         "recurrence_rule": payload.recurrence_rule,
+        "user_id": get_user_id(),
     }
 
     supabase.table("reminders").insert(reminder).execute()

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ActionType
 
 
@@ -137,7 +137,7 @@ async def check_and_award_badges(
             badge_code, supabase, xp_result, streak_result, perfect_week_result
         ):
             supabase.table("badges").insert(
-                {"code": badge_code.value}
+                {"code": badge_code.value, "user_id": get_user_id()}
             ).execute()
             newly_awarded.append({
                 "code": badge_code.value,

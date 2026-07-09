@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.db.supabase import get_supabase
+from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ParsedPayload
 
 
@@ -33,6 +33,7 @@ async def add_expense(payload: ParsedPayload) -> dict:
         "type": "expense",
         "description": payload.description or "",
         "date": (payload.date or date.today()).isoformat(),
+        "user_id": get_user_id(),
     }
 
     result = supabase.table("transactions").insert(transaction).execute()

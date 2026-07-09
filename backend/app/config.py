@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.deepseek.com/v1"
     llm_model: str = "deepseek-v4-flash"
 
+    # Notificaciones
+    telegram_chat_id: int | None = None
+    notification_morning_hour: int = 8
+    notification_evening_hour: int = 20
+    notification_timezone: str = "America/Argentina/Buenos_Aires"
+
     # App
     debug: bool = False
 
