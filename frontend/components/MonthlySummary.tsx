@@ -93,7 +93,8 @@ export default function MonthlySummary({
       let error: string | null = null;
       if (doneRes.error) error = doneRes.error.message;
       if (pendingRes.error) error = pendingRes.error.message;
-      if (budRes.error) error = budRes.error.message;
+      // budgets table may not exist yet — ignore errors silently
+      // if (budRes.error) error = budRes.error.message;
 
       const doneRows = (doneRes.data ?? []) as AmountRow[];
       const pendingRows = (pendingRes.data ?? []) as AmountRow[];
@@ -108,7 +109,7 @@ export default function MonthlySummary({
       const incomePending = sum(pendingRows, "income", "pending");
       const expensePending = sum(pendingRows, "expense", "pending");
 
-      const budgetRows = (budRes.data ?? []) as BudgetRow[];
+      const budgetRows = (!budRes.error ? budRes.data ?? [] : []) as BudgetRow[];
       const budget =
         budgetRows.length > 0 ? Number(budgetRows[0].amount) : null;
 
