@@ -80,6 +80,7 @@ export default function ExpenseChart({ month, year }: ExpenseChartProps) {
       .from("transactions")
       .select("amount, category_id, categories(name, color, icon)")
       .eq("type", "expense")
+      .eq("status", "completed")
       .gte("date", startOfMonth)
       .lte("date", endOfMonth)
       .then(({ data, error }) => {

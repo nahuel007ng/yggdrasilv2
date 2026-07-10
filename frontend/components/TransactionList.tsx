@@ -17,9 +17,11 @@ interface CategoryJoin {
 interface TransactionRow {
   id: string;
   amount: number;
-  type: string;
+  type: "income" | "expense";
+  status: "pending" | "completed";
   description: string | null;
   date: string;
+  expected_date: string | null;
   categories: CategoryJoin[] | null;
 }
 
@@ -40,7 +42,12 @@ function formatDateDDMM(dateStr: string): string {
   return `${dd}/${mm}`;
 }
 
-export default function TransactionList({ month, year }: TransactionListProps) {
+const WARNING_COLOR = "#f0ad4e";
+
+export default function TransactionList({
+  month,
+  year,
+}: TransactionListProps) {
   const currentKey = `${year}-${month}`;
   const [state, setState] = useState<ListState>({
     transactions: [],
@@ -58,27 +65,41 @@ export default function TransactionList({ month, year }: TransactionListProps) {
     const key = currentKey;
     let cancelled = false;
 
-    supabase
-      .from("transactions")
-      .select(
-        "id, amount, type, description, date, categories(name, icon)"
-      )
-      .gte("date", startOfMonth)
-      .lte("date", endOfMonth)
-      .order("date", { ascending: false })
-      .limit(20)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setState({ transactions: [], error: error.message, loadedKey: key });
-        } else {
-          setState({
-            transactions: (data ?? []) as unknown as TransactionRow[],
-            error: null,
-            loadedKey: key,
-          });
-        }
-      });
+    const selectCols =
+      "id, amount, type, status, description, date, expected_date, categories(name, icon)";
+
+    Promise.all([
+      supabase
+        .from("transactions")
+        .select(selectCols)
+        .eq("status", "completed")
+        .gte("date", startOfMonth)
+        .lte("date", endOfMonth)
+        .order("date", { ascending: false }),
+      supabase
+        .from("transactions")
+        .select(selectCols)
+        .eq("status", "pending")
+        .gte("expected_date", startOfMonth)
+        .lte("expected_date", endOfMonth)
+        .order("expected_date", { ascending: false }),
+    ]).then(([doneRes, pendingRes]) => {
+      if (cancelled) return;
+      let error: string | null = null;
+      if (doneRes.error) error = doneRes.error.message;
+      if (pendingRes.error) error = pendingRes.error.message;
+
+      const doneRows = (doneRes.data ?? []) as unknown as TransactionRow[];
+      const pendingRows = (pendingRes.data ?? []) as
+        unknown as TransactionRow[];
+      const merged = [...doneRows, ...pendingRows];
+
+      if (error) {
+        setState({ transactions: [], error, loadedKey: key });
+      } else {
+        setState({ transactions: merged, error: null, loadedKey: key });
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -127,18 +148,59 @@ export default function TransactionList({ month, year }: TransactionListProps) {
                     : null;
                   const icon = cat?.icon || "💸";
                   const isIncome = t.type === "income";
+                  const isPending = t.status === "pending";
                   const sign = isIncome ? "+" : "-";
+                  const refDate = isPending
+                    ? t.expected_date || t.date
+                    : t.date;
+                  const rowStyle: React.CSSProperties = isPending
+                    ? {
+                        opacity: 0.75,
+                        borderLeft: `3px solid ${WARNING_COLOR}`,
+                        fontStyle: "italic",
+                      }
+                    : {};
                   return (
                     <tr
                       key={t.id}
                       className="border-b border-[--color-bg-surface-hover]"
+                      style={rowStyle}
                     >
-                      <td className="py-2 pr-3">{formatDateDDMM(t.date)}</td>
+                      <td className="py-2 pr-3">
+                        <div className="flex flex-col gap-1">
+                          <span>{formatDateDDMM(refDate)}</span>
+                          {isPending && (
+                            <span
+                              style={{
+                                background: WARNING_COLOR,
+                                color: "#000",
+                                padding: "1px 6px",
+                                fontSize: "9px",
+                                fontFamily: "var(--font-pixel)",
+                                display: "inline-block",
+                                width: "fit-content",
+                              }}
+                            >
+                              ⏳ Pendiente
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="py-2 pr-3">
                         {icon} {cat?.name ?? "Sin categoria"}
                       </td>
                       <td className="py-2 pr-3 break-words max-w-[200px]">
-                        {t.description || "—"}
+                        <div className="flex flex-col gap-1">
+                          <span>{t.description || "—"}</span>
+                          {isPending && t.expected_date && (
+                            <span
+                              className="text-muted text-[10px]"
+                              style={{ fontStyle: "normal", opacity: 0.9 }}
+                            >
+                              Esperado: {formatDateDDMM(t.expected_date)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td
                         className={`py-2 pr-3 text-right font-semibold ${

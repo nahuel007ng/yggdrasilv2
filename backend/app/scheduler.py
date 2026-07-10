@@ -74,6 +74,43 @@ async def job_check_reminders() -> None:
         logger.exception("Error en job_check_reminders")
 
 
+async def job_check_pending_transactions() -> None:
+    """Job: recordatorios de transacciones pendientes cuya fecha esperada es hoy."""
+    logger.info("Ejecutando job: check transacciones pendientes")
+    try:
+        from datetime import date as date_type
+
+        from app.db.supabase import get_supabase
+
+        supabase = get_supabase()
+        today = date_type.today().isoformat()
+
+        pending = (
+            supabase.table("transactions")
+            .select("*")
+            .eq("status", "pending")
+            .eq("expected_date", today)
+            .execute()
+        )
+
+        for tx in pending.data:
+            tipo = "cobrar" if tx["type"] == "income" else "pagar"
+            amount = tx["amount"]
+            desc = tx.get("description", "")
+            msg = (
+                f"📋 Hoy esperabas {tipo} ${amount:,.0f}"
+                f"{' — ' + desc if desc else ''}.\n"
+                f"¿Se concretó? Respondé sí/no (podés ajustar el monto, ej: 'sí pero a 600mil')"
+                f"\n\n_ID: {tx['id']}_"
+            )
+            await _send_message(msg)
+
+        if pending.data:
+            logger.info("Enviados %d recordatorios de transacciones pendientes", len(pending.data))
+    except Exception:
+        logger.exception("Error en job_check_pending_transactions")
+
+
 async def job_evening_habits() -> None:
     """Job: habitos pendientes vespertino."""
     logger.info("Ejecutando job: habitos pendientes vespertino")
@@ -88,7 +125,7 @@ async def job_evening_habits() -> None:
 
 
 def start_scheduler() -> AsyncIOScheduler:
-    """Configura e inicia el scheduler con los 3 jobs de notificaciones."""
+    """Configura e inicia el scheduler con los 4 jobs de notificaciones."""
     scheduler = AsyncIOScheduler()
     tz = settings.notification_timezone
 
@@ -119,9 +156,18 @@ def start_scheduler() -> AsyncIOScheduler:
         replace_existing=True,
     )
 
+    # 4. Transacciones pendientes (junto con resumen matutino, 9:05 AM)
+    scheduler.add_job(
+        job_check_pending_transactions,
+        trigger=CronTrigger(hour=9, minute=5, timezone=tz),
+        id="check_pending_transactions",
+        name="Check transacciones pendientes",
+        replace_existing=True,
+    )
+
     scheduler.start()
     logger.info(
-        "Scheduler iniciado con 3 jobs: matutino (%s:00), recordatorios (cada 5min), vespertino (%s:00) [TZ: %s]",
+        "Scheduler iniciado con 4 jobs: matutino (%s:00), recordatorios (cada 5min), vespertino (%s:00), tx pendientes (9:05) [TZ: %s]",
         settings.notification_morning_hour,
         settings.notification_evening_hour,
         tz,

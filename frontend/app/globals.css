@@ -223,3 +223,9 @@ h3 { font-size: 12px; }
 .nav-link-active {
   color: var(--color-gold) !important;
 }
+
+/* --- Mobile sidebar drawer animation --- */
+@keyframes sidebar-slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}

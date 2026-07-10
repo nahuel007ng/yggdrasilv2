@@ -11,51 +11,18 @@ const links = [
   { href: "/tareas", label: "Tareas", icon: "📋" },
   { href: "/estudios", label: "Estudios", icon: "📚" },
   { href: "/entrenamientos", label: "Entreno", icon: "💪" },
+  { href: "/perfil", label: "Perfil", icon: "🛡️" },
 ];
 
 export default function Nav({
   vertical,
-  mobile,
+  onNavigate,
 }: {
   vertical?: boolean;
-  mobile?: boolean;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const { signOut } = useAuth();
-
-  if (mobile) {
-    return (
-      <div className="flex justify-around">
-        {links.map((link) => {
-          const isActive = pathname === link.href;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`flex flex-col items-center gap-1 py-2 px-3 text-[10px] transition-colors relative
-                ${isActive
-                  ? "text-[--color-gold]"
-                  : "text-[--color-text-muted] hover:text-[--color-text]"
-                }`}
-            >
-              {isActive && (
-                <span className="absolute top-0 left-1/4 right-1/4 h-[2px] bg-[--color-mana]" />
-              )}
-              <span className="text-2xl">{link.icon}</span>
-              {link.label}
-            </Link>
-          );
-        })}
-        <button
-          onClick={signOut}
-          className="flex flex-col items-center gap-1 py-2 px-3 text-[10px] transition-colors relative text-hp hover:text-[--color-text]"
-        >
-          <span className="text-2xl">🚪</span>
-          Salir
-        </button>
-      </div>
-    );
-  }
 
   if (vertical) {
     return (
@@ -66,6 +33,7 @@ export default function Nav({
             <Link
               key={link.href}
               href={link.href}
+              onClick={onNavigate}
               className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px]
                 ${isActive
                   ? "bg-[--color-bg-surface] text-[--color-gold] border-[--color-mana]"

@@ -1,6 +1,6 @@
 -- =============================================================
 -- Yggdrasil v2 — Schema SQL para Supabase (PostgreSQL 15+)
--- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth
+-- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth, correcciones-v1
 -- Nota: todas las tablas tienen columna user_id UUID NOT NULL REFERENCES auth.users(id)
 --       agregada por migration-auth.sql. user_profile tiene telegram_chat_id BIGINT.
 -- =============================================================
@@ -37,8 +37,13 @@ CREATE TABLE transactions (
     type TEXT NOT NULL CHECK (type IN ('income', 'expense')),
     description TEXT,
     date DATE NOT NULL DEFAULT CURRENT_DATE,
+    status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed')),
+    expected_date DATE,
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Index para buscar transacciones pendientes por fecha (scheduler)
+CREATE INDEX idx_transactions_pending ON transactions (status, expected_date) WHERE status = 'pending';
 
 -- 4. Definición de hábitos
 CREATE TABLE habits (

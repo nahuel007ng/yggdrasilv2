@@ -5,6 +5,8 @@ from app.models.schemas import ActionType
 
 XP_REWARDS: dict[ActionType, int] = {
     ActionType.ADD_EXPENSE: 10,
+    ActionType.ADD_EXPECTED: 5,
+    ActionType.CONFIRM_TRANSACTION: 10,
     ActionType.TOGGLE_HABIT: 15,
     ActionType.ADD_TASK: 5,
     ActionType.LOG_STUDY: 20,

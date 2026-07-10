@@ -1,5 +1,5 @@
 from app.models.schemas import ActionType
-from app.services.expenses import add_expense
+from app.services.expenses import add_expense, add_expected_transaction, confirm_transaction
 from app.services.habits import toggle_habit
 from app.services.tasks import add_task
 from app.services.study import log_study
@@ -86,6 +86,44 @@ async def execute_action(parsed) -> str:
                 msg += _format_badge_feedback(badges)
                 return msg
             return f"Error al registrar gasto: {result.get('error', 'desconocido')}"
+
+        elif parsed.action == ActionType.ADD_EXPECTED:
+            result = await add_expected_transaction(parsed.payload)
+            if result["success"]:
+                tipo = "Ingreso" if result["type"] == "income" else "Gasto"
+                msg = f"📋 {tipo} esperado registrado: ${result['amount']:,.0f}"
+                if result.get("description"):
+                    msg += f" — {result['description']}"
+                msg += f"\n📅 Fecha esperada: {result['expected_date']}"
+                msg += "\nTe voy a avisar cuando llegue la fecha."
+                xp_result = await award_xp(parsed.action)
+                msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                )
+                msg += _format_badge_feedback(badges)
+                return msg
+            return f"Error al registrar transacción esperada: {result.get('error', 'desconocido')}"
+
+        elif parsed.action == ActionType.CONFIRM_TRANSACTION:
+            result = await confirm_transaction(parsed.payload)
+            if result["success"]:
+                if result["confirmed"]:
+                    msg = f"✅ Transacción confirmada: ${result['amount']:,.0f}"
+                    if result.get("amount_changed"):
+                        msg += f" (ajustado de ${result['original_amount']:,.0f})"
+                    xp_result = await award_xp(parsed.action)
+                    msg += _format_xp_feedback(xp_result)
+                    badges = await check_and_award_badges(
+                        action_type=parsed.action,
+                        xp_result=xp_result,
+                    )
+                    msg += _format_badge_feedback(badges)
+                    return msg
+                else:
+                    return "❌ Transacción cancelada."
+            return f"Error al confirmar transacción: {result.get('error', 'desconocido')}"
 
         elif parsed.action == ActionType.TOGGLE_HABIT:
             result = await toggle_habit(parsed.payload)
@@ -174,6 +212,7 @@ async def execute_action(parsed) -> str:
             return (
                 "No entendí qué querés hacer. Probá con algo como:\n"
                 "- 'gasté 200 en comida'\n"
+                "- 'el 10 cobro NODO 80000'\n"
                 "- 'hice ejercicio'\n"
                 "- 'estudié 2 horas de análisis'\n"
                 "- 'hice 3x10 flexiones'\n"

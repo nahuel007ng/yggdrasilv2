@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import AvatarCard from "@/components/AvatarCard";
-import XPBar from "@/components/XPBar";
-import StreaksPanel from "@/components/StreaksPanel";
-import BadgesGrid from "@/components/BadgesGrid";
 
 interface UserProfile {
   display_name: string | null;
@@ -15,20 +12,139 @@ interface UserProfile {
   streak_shields: number;
 }
 
+const AVATAR_BY_TIER: Record<number, string> = {
+  1: "⚔️",
+  2: "🗡️",
+  3: "🛡️",
+  4: "👑",
+  5: "🐉",
+};
+
+function xpForLevel(n: number): number {
+  return Math.floor((100 * n * (n + 1)) / 2);
+}
+
+interface TxRow {
+  amount: number;
+  type: "income" | "expense";
+  status: "pending" | "completed";
+}
+
+interface HabitRow {
+  id: string;
+  name: string;
+  icon: string | null;
+}
+
+interface HabitRecordRow {
+  habit_id: string;
+  completed: boolean;
+}
+
+interface TaskRow {
+  id: string;
+  title: string;
+  status: string;
+  due_date: string | null;
+}
+
+interface UpcomingTxRow {
+  id: string;
+  amount: number;
+  type: "income" | "expense";
+  description: string | null;
+  expected_date: string | null;
+  date: string;
+}
+
+function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+function endOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function ymdLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function daysUntil(dateStr: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr);
+  target.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - today.getTime()) / 86400000);
+}
+
 export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [transactions, setTransactions] = useState<TxRow[] | null>(null);
+  const [habits, setHabits] = useState<HabitRow[] | null>(null);
+  const [habitRecords, setHabitRecords] = useState<HabitRecordRow[] | null>(
+    null
+  );
+  const [tasks, setTasks] = useState<TaskRow[] | null>(null);
+  const [upcoming, setUpcoming] = useState<UpcomingTxRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase
-      .from("user_profile")
-      .select(
-        "display_name, avatar_level, total_xp, current_level, streak_shields"
-      )
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) setError(error.message);
-        else if (data) setProfile(data as UserProfile);
+    const now = new Date();
+    const monthStart = ymdLocal(startOfMonth(now));
+    const monthEnd = ymdLocal(endOfMonth(now));
+    const todayStr = ymdLocal(now);
+    const horizon = new Date(now);
+    horizon.setDate(horizon.getDate() + 7);
+    const horizonStr = ymdLocal(horizon);
+
+    Promise.all([
+      supabase
+        .from("user_profile")
+        .select(
+          "display_name, avatar_level, total_xp, current_level, streak_shields"
+        )
+        .maybeSingle(),
+      supabase
+        .from("transactions")
+        .select("amount, type, status")
+        .gte("date", monthStart)
+        .lte("date", monthEnd),
+      supabase
+        .from("habits")
+        .select("id, name, icon")
+        .eq("is_archived", false)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("habit_records")
+        .select("habit_id, completed")
+        .eq("date", todayStr),
+      supabase
+        .from("tasks")
+        .select("id, title, status, due_date")
+        .eq("is_deleted", false)
+        .in("status", ["todo", "doing"])
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("transactions")
+        .select("id, amount, type, description, expected_date, date")
+        .eq("status", "pending")
+        .gte("expected_date", todayStr)
+        .lte("expected_date", horizonStr)
+        .order("expected_date", { ascending: true }),
+    ]).then(
+      ([
+        profileRes,
+        txRes,
+        habitsRes,
+        recordsRes,
+        tasksRes,
+        upcomingRes,
+      ]) => {
+        if (profileRes.error) setError(profileRes.error.message);
+        else if (profileRes.data) setProfile(profileRes.data as UserProfile);
         else
           setProfile({
             display_name: null,
@@ -37,7 +153,23 @@ export default function DashboardPage() {
             current_level: 1,
             streak_shields: 0,
           });
-      });
+
+        if (txRes.error) setError(txRes.error.message);
+        else setTransactions((txRes.data ?? []) as TxRow[]);
+
+        if (habitsRes.error) setError(habitsRes.error.message);
+        else setHabits((habitsRes.data ?? []) as HabitRow[]);
+
+        if (recordsRes.error) setError(recordsRes.error.message);
+        else setHabitRecords((recordsRes.data ?? []) as HabitRecordRow[]);
+
+        if (tasksRes.error) setError(tasksRes.error.message);
+        else setTasks((tasksRes.data ?? []) as TaskRow[]);
+
+        if (upcomingRes.error) setError(upcomingRes.error.message);
+        else setUpcoming((upcomingRes.data ?? []) as UpcomingTxRow[]);
+      }
+    );
   }, []);
 
   if (error) {
@@ -51,37 +183,330 @@ export default function DashboardPage() {
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="pixel-card">
-        <h3 className="pixel-card-title">Dashboard</h3>
-        <p className="text-muted">Cargando...</p>
-      </div>
-    );
-  }
+  // ---- Derived data ----
+  const incomeCompleted =
+    transactions
+      ?.filter((t) => t.type === "income" && t.status === "completed")
+      .reduce((s, t) => s + t.amount, 0) ?? 0;
+  const incomePending =
+    transactions
+      ?.filter((t) => t.type === "income" && t.status === "pending")
+      .reduce((s, t) => s + t.amount, 0) ?? 0;
+  const expenseCompleted =
+    transactions
+      ?.filter((t) => t.type === "expense" && t.status === "completed")
+      .reduce((s, t) => s + t.amount, 0) ?? 0;
+  const available = incomeCompleted - expenseCompleted;
+
+  const completedHabitIds = new Set(
+    (habitRecords ?? [])
+      .filter((r) => r.completed)
+      .map((r) => r.habit_id)
+  );
+  const habitsCompleted = (habits ?? []).filter((h) =>
+    completedHabitIds.has(h.id)
+  ).length;
+  const habitsTotal = habits?.length ?? 0;
+
+  const todayStr = ymdLocal(new Date());
+  const todaysTasks =
+    tasks?.filter(
+      (t) => !t.due_date || t.due_date.slice(0, 10) === todayStr
+    ) ?? [];
+
+  const fmMoney = (n: number) =>
+    "$" + n.toLocaleString("es-AR", { maximumFractionDigits: 0 });
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <AvatarCard
-          displayName={profile.display_name}
-          avatarLevel={profile.avatar_level}
-          currentLevel={profile.current_level}
-          streakShields={profile.streak_shields}
+      {/* Hero card */}
+      {profile && (
+        <HeroCard profile={profile} />
+      )}
+
+      {/* Functional cards grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <MoneyCard
+          available={available}
+          incomeCompleted={incomeCompleted}
+          incomePending={incomePending}
+          expenseCompleted={expenseCompleted}
+          loading={transactions === null}
+          fmMoney={fmMoney}
         />
-        <XPBar
-          totalXp={profile.total_xp}
-          currentLevel={profile.current_level}
+        <HabitsCard
+          completed={habitsCompleted}
+          total={habitsTotal}
+          habits={habits ?? []}
+          completedIds={completedHabitIds}
+          loading={habits === null || habitRecords === null}
+        />
+        <TasksCard
+          tasks={todaysTasks}
+          loading={tasks === null}
+        />
+        <UpcomingCard
+          upcoming={upcoming ?? []}
+          loading={upcoming === null}
+          fmMoney={fmMoney}
         />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1">
-          <StreaksPanel />
-        </div>
-        <div className="lg:col-span-2">
-          <BadgesGrid />
+    </div>
+  );
+}
+
+// ============================================================
+// HeroCard — avatar + nivel + XP bar compacta
+// ============================================================
+
+function HeroCard({ profile }: { profile: UserProfile }) {
+  const safeTier = Math.min(Math.max(profile.avatar_level || 1, 1), 5);
+  const emoji = AVATAR_BY_TIER[safeTier] ?? AVATAR_BY_TIER[1];
+  const xpForCurrent = xpForLevel(profile.current_level);
+  const xpForNext = xpForLevel(profile.current_level + 1);
+  const xpSpan = Math.max(xpForNext - xpForCurrent, 1);
+  const xpInLevel = Math.max(profile.total_xp - xpForCurrent, 0);
+  const progress = Math.min(Math.max((xpInLevel / xpSpan) * 100, 0), 100);
+
+  return (
+    <div className="pixel-card">
+      <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4">
+        <span
+          className="text-5xl"
+          aria-label={`Avatar tier ${safeTier}`}
+          style={{ textShadow: "0 0 20px rgba(74, 158, 142, 0.3)" }}
+        >
+          {emoji}
+        </span>
+        <div className="flex-1 w-full">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className="text-pixel text-mana text-sm">
+              Nivel {profile.current_level}
+            </span>
+            <span className="text-muted">·</span>
+            <span
+              className="text-[--color-text] break-words"
+              style={{ fontSize: "14px" }}
+            >
+              {profile.display_name || "Aventurero"}
+            </span>
+            {profile.streak_shields > 0 && (
+              <span className="text-xp text-xs">🛡️ x{profile.streak_shields}</span>
+            )}
+          </div>
+          <div className="pixel-progress">
+            <div
+              className="pixel-progress-fill is-xp"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="flex justify-between items-center mt-2">
+            <p className="text-muted text-xs">
+              {xpInLevel.toLocaleString()} / {xpSpan.toLocaleString()} XP
+            </p>
+            <Link
+              href="/perfil"
+              className="text-mana text-xs hover:text-[--color-mana-light] transition-colors"
+            >
+              Ver perfil completo →
+            </Link>
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MoneyCard
+// ============================================================
+
+function MoneyCard({
+  available,
+  incomeCompleted,
+  incomePending,
+  expenseCompleted,
+  loading,
+  fmMoney,
+}: {
+  available: number;
+  incomeCompleted: number;
+  incomePending: number;
+  expenseCompleted: number;
+  loading: boolean;
+  fmMoney: (n: number) => string;
+}) {
+  return (
+    <div className="pixel-card">
+      <h3 className="pixel-card-title">💰 Disponible</h3>
+      {loading ? (
+        <p className="text-muted">Cargando...</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <p className="text-gold text-pixel text-sm">{fmMoney(available)}</p>
+          <p className="text-muted text-xs">
+            Cobrado: <span className="text-xp">{fmMoney(incomeCompleted)}</span>
+          </p>
+          <p className="text-muted text-xs">
+            Por cobrar:{" "}
+            <span className="text-[--color-coral-light]">
+              {fmMoney(incomePending)}
+            </span>
+          </p>
+          <p className="text-muted text-xs">
+            Gastado: <span className="text-hp">{fmMoney(expenseCompleted)}</span>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// HabitsCard — solo lectura
+// ============================================================
+
+function HabitsCard({
+  completed,
+  total,
+  habits,
+  completedIds,
+  loading,
+}: {
+  completed: number;
+  total: number;
+  habits: HabitRow[];
+  completedIds: Set<string>;
+  loading: boolean;
+}) {
+  return (
+    <div className="pixel-card">
+      <h3 className="pixel-card-title">✅ Hábitos hoy</h3>
+      {loading ? (
+        <p className="text-muted">Cargando...</p>
+      ) : total === 0 ? (
+        <p className="text-muted">No hay hábitos activos</p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <p className="text-mana text-sm mb-1">
+            {completed}/{total} completados
+          </p>
+          <ul className="flex flex-col gap-1">
+            {habits.slice(0, 5).map((h) => (
+              <li
+                key={h.id}
+                className="text-xs flex items-center gap-2"
+              >
+                <span>{h.icon || "·"}</span>
+                <span
+                  className={
+                    completedIds.has(h.id) ? "text-xp" : "text-muted"
+                  }
+                >
+                  {h.name}
+                </span>
+                <span className="ml-auto">
+                  {completedIds.has(h.id) ? "✅" : "⬜"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// TasksCard
+// ============================================================
+
+function TasksCard({
+  tasks,
+  loading,
+}: {
+  tasks: TaskRow[];
+  loading: boolean;
+}) {
+  return (
+    <div className="pixel-card">
+      <h3 className="pixel-card-title">📋 Tareas hoy</h3>
+      {loading ? (
+        <p className="text-muted">Cargando...</p>
+      ) : tasks.length === 0 ? (
+        <p className="text-muted">Sin tareas pendientes para hoy 🎉</p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <p className="text-mana text-sm mb-1">
+            {tasks.length} pendiente{tasks.length === 1 ? "" : "s"}
+          </p>
+          <ul className="flex flex-col gap-1">
+            {tasks.slice(0, 4).map((t) => (
+              <li key={t.id} className="text-xs text-[--color-text]">
+                · {t.title}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// UpcomingCard — transacciones pendientes próximos 7 días
+// ============================================================
+
+function UpcomingCard({
+  upcoming,
+  loading,
+  fmMoney,
+}: {
+  upcoming: UpcomingTxRow[];
+  loading: boolean;
+  fmMoney: (n: number) => string;
+}) {
+  return (
+    <div className="pixel-card">
+      <h3 className="pixel-card-title">📅 Próximos pagos/cobros</h3>
+      {loading ? (
+        <p className="text-muted">Cargando...</p>
+      ) : upcoming.length === 0 ? (
+        <p className="text-muted">Sin pagos/cobros próximos</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {upcoming.slice(0, 5).map((t) => {
+            const refDate = t.expected_date || t.date;
+            const days = daysUntil(refDate);
+            const isIncome = t.type === "income";
+            return (
+              <li
+                key={t.id}
+                className="text-xs flex items-center gap-2"
+              >
+                <span>{isIncome ? "⬆️" : "⬇️"}</span>
+                <span className="text-[--color-text] flex-1 truncate">
+                  {t.description || (isIncome ? "Cobro" : "Pago")}
+                </span>
+                <span
+                  className={
+                    isIncome ? "text-xp" : "text-hp"
+                  }
+                >
+                  {fmMoney(t.amount)}
+                </span>
+                <span className="text-muted">
+                  {days === 0
+                    ? "hoy"
+                    : days === 1
+                      ? "mañana"
+                      : `en ${days} días`}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { AuthProvider } from "@/components/AuthProvider";
 import AuthGuard from "@/components/AuthGuard";
@@ -12,6 +13,7 @@ export default function AppShell({
 }) {
   const pathname = usePathname();
   const isLogin = pathname === "/login";
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <AuthProvider>
@@ -24,6 +26,21 @@ export default function AppShell({
             className="bg-[--color-bg] px-6 py-4 flex items-center"
             style={{ boxShadow: "0 var(--pixel-size) 0 0 var(--color-border)" }}
           >
+            {/* Hamburger — mobile only */}
+            <button
+              type="button"
+              className="md:hidden mr-4 pixel-btn"
+              style={{
+                fontFamily: "var(--font-pixel)",
+                fontSize: "14px",
+                padding: "2px 10px",
+                lineHeight: 1,
+              }}
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir menú de navegación"
+            >
+              ☰
+            </button>
             <span className="text-[--color-border] text-xs mr-3 hidden sm:inline">
               ▎▎
             </span>
@@ -46,21 +63,71 @@ export default function AppShell({
               <Nav vertical />
             </aside>
 
+            {/* Sidebar mobile overlay */}
+            {sidebarOpen && (
+              <>
+                {/* Backdrop */}
+                <div
+                  className="md:hidden"
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    background: "rgba(0, 0, 0, 0.5)",
+                    zIndex: 40,
+                  }}
+                  onClick={() => setSidebarOpen(false)}
+                  aria-hidden="true"
+                />
+                {/* Drawer */}
+                <nav
+                  className="md:hidden"
+                  style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    width: "260px",
+                    background: "var(--color-bg)",
+                    zIndex: 50,
+                    padding: "var(--space-4)",
+                    overflowY: "auto",
+                    boxShadow: "var(--pixel-size) 0 0 0 var(--color-border)",
+                    animation: "sidebar-slide-in 0.2s ease-out",
+                  }}
+                  aria-label="Menú de navegación"
+                >
+                  <button
+                    type="button"
+                    className="pixel-btn"
+                    style={{
+                      position: "absolute",
+                      top: "var(--space-4)",
+                      right: "var(--space-4)",
+                      padding: "2px 8px",
+                      fontFamily: "var(--font-pixel)",
+                      fontSize: "10px",
+                      lineHeight: 1,
+                    }}
+                    onClick={() => setSidebarOpen(false)}
+                    aria-label="Cerrar menú"
+                  >
+                    ✕
+                  </button>
+                  <div className="flex flex-col gap-1 py-4">
+                    <Nav
+                      vertical
+                      onNavigate={() => setSidebarOpen(false)}
+                    />
+                  </div>
+                </nav>
+              </>
+            )}
+
             {/* Main content */}
             <AuthGuard>
               <main className="flex-1 p-6 overflow-auto">{children}</main>
             </AuthGuard>
           </div>
-
-          {/* Mobile bottom tabs */}
-          <nav
-            className="md:hidden bg-[--color-bg] py-1"
-            style={{
-              boxShadow: "0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border)",
-            }}
-          >
-            <Nav mobile />
-          </nav>
         </>
       )}
     </AuthProvider>

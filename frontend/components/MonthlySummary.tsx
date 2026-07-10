@@ -22,23 +22,38 @@ function getLastDayOfMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }
 
+interface AmountRow {
+  amount: number;
+  type: "income" | "expense";
+  status: "pending" | "completed";
+}
+
 interface BudgetRow {
   amount: number;
 }
 
 interface SummaryState {
-  totalIncome: number;
-  totalExpenses: number;
+  incomeCompleted: number;
+  incomePending: number;
+  expenseCompleted: number;
+  expensePending: number;
   budget: number | null;
   error: string | null;
   loadedKey: string;
 }
 
-export default function MonthlySummary({ month, year }: MonthlySummaryProps) {
+const WARNING_COLOR = "#f0ad4e";
+
+export default function MonthlySummary({
+  month,
+  year,
+}: MonthlySummaryProps) {
   const currentKey = `${year}-${month}`;
   const [state, setState] = useState<SummaryState>({
-    totalIncome: 0,
-    totalExpenses: 0,
+    incomeCompleted: 0,
+    incomePending: 0,
+    expenseCompleted: 0,
+    expensePending: 0,
     budget: null,
     error: null,
     loadedKey: "",
@@ -57,43 +72,51 @@ export default function MonthlySummary({ month, year }: MonthlySummaryProps) {
     Promise.all([
       supabase
         .from("transactions")
-        .select("amount")
-        .eq("type", "income")
+        .select("amount, type, status")
+        .eq("status", "completed")
         .gte("date", startOfMonth)
         .lte("date", endOfMonth),
       supabase
         .from("transactions")
-        .select("amount")
-        .eq("type", "expense")
-        .gte("date", startOfMonth)
-        .lte("date", endOfMonth),
+        .select("amount, type, status")
+        .eq("status", "pending")
+        .gte("expected_date", startOfMonth)
+        .lte("expected_date", endOfMonth),
       supabase
         .from("budgets")
         .select("amount")
         .is("category_id", null)
         .eq("month", month)
         .eq("year", year),
-    ]).then(([incRes, expRes, budRes]) => {
+    ]).then(([doneRes, pendingRes, budRes]) => {
       if (cancelled) return;
       let error: string | null = null;
-      if (incRes.error) error = incRes.error.message;
-      if (expRes.error) error = expRes.error.message;
+      if (doneRes.error) error = doneRes.error.message;
+      if (pendingRes.error) error = pendingRes.error.message;
+      if (budRes.error) error = budRes.error.message;
 
-      const totalIncome = (incRes.data ?? []).reduce(
-        (sum: number, r: { amount: number }) => sum + Number(r.amount),
-        0
-      );
-      const totalExpenses = (expRes.data ?? []).reduce(
-        (sum: number, r: { amount: number }) => sum + Number(r.amount),
-        0
-      );
+      const doneRows = (doneRes.data ?? []) as AmountRow[];
+      const pendingRows = (pendingRes.data ?? []) as AmountRow[];
+
+      const sum = (rows: AmountRow[], type: string, status: string) =>
+        rows
+          .filter((r) => r.type === type && r.status === status)
+          .reduce((s, r) => s + Number(r.amount), 0);
+
+      const incomeCompleted = sum(doneRows, "income", "completed");
+      const expenseCompleted = sum(doneRows, "expense", "completed");
+      const incomePending = sum(pendingRows, "income", "pending");
+      const expensePending = sum(pendingRows, "expense", "pending");
+
       const budgetRows = (budRes.data ?? []) as BudgetRow[];
       const budget =
         budgetRows.length > 0 ? Number(budgetRows[0].amount) : null;
 
       setState({
-        totalIncome,
-        totalExpenses,
+        incomeCompleted,
+        incomePending,
+        expenseCompleted,
+        expensePending,
         budget,
         error,
         loadedKey: key,
@@ -119,53 +142,134 @@ export default function MonthlySummary({ month, year }: MonthlySummaryProps) {
     return <p className="text-muted">Cargando resumen...</p>;
   }
 
-  const balance = state.totalIncome - state.totalExpenses;
-  const budget = state.budget;
-  const budgetUsage =
-    budget && budget > 0
-      ? Math.min(Math.round((state.totalExpenses / budget) * 100), 100)
-      : null;
+  const balanceReal =
+    state.incomeCompleted - state.expenseCompleted;
+  const balanceProjected =
+    state.incomeCompleted +
+    state.incomePending -
+    (state.expenseCompleted + state.expensePending);
+  const incomeExpected = state.incomeCompleted + state.incomePending;
+  const expenseExpected = state.expenseCompleted + state.expensePending;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="flex flex-col gap-3">
+      {/* INGRESOS */}
       <div className="pixel-card">
-        <p className="text-muted text-xs mb-1">💰 Ingresos</p>
-        <p className="text-xp text-lg font-semibold">
-          {formatARS(state.totalIncome)}
-        </p>
-      </div>
-      <div className="pixel-card">
-        <p className="text-muted text-xs mb-1">💸 Gastos</p>
-        <p className="text-hp text-lg font-semibold">
-          {formatARS(state.totalExpenses)}
-        </p>
-      </div>
-      <div className="pixel-card">
-        <p className="text-muted text-xs mb-1">📊 Balance</p>
-        <p
-          className={`text-lg font-semibold ${
-            balance >= 0 ? "text-xp" : "text-hp"
-          }`}
-        >
-          {formatARS(balance)}
-        </p>
-      </div>
-      {budget !== null && budget > 0 && (
-        <div className="pixel-card sm:col-span-3">
-          <h3 className="pixel-card-title">Presupuesto</h3>
-          <p className="text-muted text-xs mb-2">
-            Presupuesto: {formatARS(budget)} — Usado: {budgetUsage}%
-          </p>
-          <div className="pixel-progress">
-            <div
-              className={`pixel-progress-fill ${
-                (budgetUsage ?? 0) >= 100 ? "is-hp" : "is-xp"
-              }`}
-              style={{ width: `${budgetUsage ?? 0}%` }}
-            />
+        <h3 className="pixel-card-title">Ingresos</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-muted text-xs mb-1">Cobrados ✅</p>
+            <p className="text-xp text-base font-semibold">
+              {formatARS(state.incomeCompleted)}
+            </p>
           </div>
+          <div
+            style={{
+              opacity: 0.85,
+              borderLeft: `3px solid ${WARNING_COLOR}`,
+              paddingLeft: "8px",
+            }}
+          >
+            <p className="text-muted text-xs mb-1">Por cobrar ⏳</p>
+            <p
+              className="text-base font-semibold"
+              style={{ color: WARNING_COLOR }}
+            >
+              {formatARS(state.incomePending)}
+            </p>
+          </div>
+        </div>
+        <p className="text-muted text-xs mt-2">
+          Total esperado: {formatARS(incomeExpected)}
+        </p>
+      </div>
+
+      {/* GASTOS */}
+      <div className="pixel-card">
+        <h3 className="pixel-card-title">Gastos</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-muted text-xs mb-1">Pagados ✅</p>
+            <p className="text-hp text-base font-semibold">
+              {formatARS(state.expenseCompleted)}
+            </p>
+          </div>
+          <div
+            style={{
+              opacity: 0.85,
+              borderLeft: `3px solid ${WARNING_COLOR}`,
+              paddingLeft: "8px",
+            }}
+          >
+            <p className="text-muted text-xs mb-1">Pendientes ⏳</p>
+            <p
+              className="text-base font-semibold"
+              style={{ color: WARNING_COLOR }}
+            >
+              {formatARS(state.expensePending)}
+            </p>
+          </div>
+        </div>
+        <p className="text-muted text-xs mt-2">
+          Total esperado: {formatARS(expenseExpected)}
+        </p>
+      </div>
+
+      {/* BALANCE */}
+      <div className="pixel-card">
+        <h3 className="pixel-card-title">Balance</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-muted text-xs mb-1">Real (cobrado - pagado)</p>
+            <p
+              className={`text-base font-semibold ${
+                balanceReal >= 0 ? "text-xp" : "text-hp"
+              }`}
+            >
+              {formatARS(balanceReal)}
+            </p>
+          </div>
+          <div>
+            <p className="text-muted text-xs mb-1">Proyectado (todo)</p>
+            <p
+              className={`text-base font-semibold ${
+                balanceProjected >= 0 ? "text-mana" : "text-hp"
+              }`}
+            >
+              {formatARS(balanceProjected)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* PRESUPUESTO */}
+      {state.budget !== null && state.budget > 0 && (
+        <div className="pixel-card">
+          <h3 className="pixel-card-title">Presupuesto</h3>
+          <BudgetBar
+            spent={state.expenseCompleted}
+            budget={state.budget}
+          />
         </div>
       )}
     </div>
+  );
+}
+
+function BudgetBar({ spent, budget }: { spent: number; budget: number }) {
+  const usage =
+    budget > 0 ? Math.min(Math.round((spent / budget) * 100), 100) : 0;
+  return (
+    <>
+      <p className="text-muted text-xs mb-2">
+        Presupuesto: {formatARS(budget)} — Usado: {usage}%
+      </p>
+      <div className="pixel-progress">
+        <div
+          className={`pixel-progress-fill ${usage >= 100 ? "is-hp" : "is-xp"}`}
+          style={{ width: `${usage}%` }}
+        />
+      </div>
+    </>
   );
 }

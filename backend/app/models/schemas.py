@@ -6,6 +6,8 @@ from datetime import date as Date
 
 class ActionType(str, Enum):
     ADD_EXPENSE = "ADD_EXPENSE"
+    ADD_EXPECTED = "ADD_EXPECTED"
+    CONFIRM_TRANSACTION = "CONFIRM_TRANSACTION"
     TOGGLE_HABIT = "TOGGLE_HABIT"
     ADD_TASK = "ADD_TASK"
     LOG_STUDY = "LOG_STUDY"
@@ -50,6 +52,12 @@ class ParsedPayload(BaseModel):
     # QUERY_DATA
     date_from: Optional[Date] = None
     date_to: Optional[Date] = None
+
+    # ADD_EXPECTED / CONFIRM_TRANSACTION
+    transaction_id: Optional[str] = None
+    confirmed: Optional[bool] = None
+    actual_amount: Optional[float] = None
+    transaction_type: Optional[str] = None
 
 
 class ParsedAction(BaseModel):
