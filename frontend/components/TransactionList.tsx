@@ -2,7 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 import { formatARS } from "./MonthlySummary";
+
+const categoryNameToSprite: Record<string, string> = {
+  Comida: "cat-comida",
+  Transporte: "cat-transporte",
+  Entretenimiento: "cat-entretenimiento",
+  Servicios: "cat-servicios",
+  Alquiler: "cat-alquiler",
+  Salud: "cat-salud",
+  Ropa: "cat-ropa",
+  Tecnología: "cat-tecnologia",
+  Educación: "cat-educacion",
+  Otros: "cat-otros-gasto",
+  "Sueldo CPCEC": "cat-sueldo-cpcec",
+  "Sueldo NODO": "cat-sueldo-nodo",
+};
+
+function resolveCategorySprite(name: string | null | undefined, icon: string | null | undefined): string {
+  if (icon && /^(cat|nav)-/.test(icon)) return icon;
+  if (name && categoryNameToSprite[name]) return categoryNameToSprite[name];
+  return "cat-otros-gasto";
+}
 
 export interface TransactionListProps {
   month: number;
@@ -146,7 +168,7 @@ export default function TransactionList({
                   const cat = Array.isArray(t.categories)
                     ? t.categories[0]
                     : null;
-                  const icon = cat?.icon || "💸";
+                  const spriteKey = resolveCategorySprite(cat?.name, cat?.icon);
                   const isIncome = t.type === "income";
                   const isPending = t.status === "pending";
                   const sign = isIncome ? "+" : "-";
@@ -186,9 +208,12 @@ export default function TransactionList({
                           )}
                         </div>
                       </td>
-                      <td className="py-2 pr-3">
-                        {icon} {cat?.name ?? "Sin categoria"}
-                      </td>
+<td className="py-2 pr-3">
+  <div className="flex items-center gap-1">
+    <PixelIcon name={spriteKey} size={20} className="shrink-0" alt={cat?.name ?? "Sin categoria"} />
+    {cat?.name ?? "Sin categoria"}
+  </div>
+</td>
                       <td className="py-2 pr-3 break-words max-w-[200px]">
                         <div className="flex flex-col gap-1">
                           <span>{t.description || "—"}</span>

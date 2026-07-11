@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 
 const MONTH_NAMES = [
   "Enero",
@@ -168,7 +169,13 @@ export default function HabitCalendar({
                   <div key={dateStr} className={cellClass}>
                     <span>{day}</span>
                     <span>
-                      {completed ? "✅" : isFuture ? "" : "❌"}
+                      {completed ? (
+                        <PixelIcon name="status-complete" size={16} />
+                      ) : isFuture ? (
+                        ""
+                      ) : (
+                        <PixelIcon name="status-failed" size={16} />
+                      )}
                     </span>
                   </div>
                 );

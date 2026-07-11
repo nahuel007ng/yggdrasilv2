@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import TaskList from "@/components/TaskList";
 import TaskKanban from "@/components/TaskKanban";
 import { type Task } from "@/components/TaskCard";
+import PixelIcon from "@/components/PixelIcon";
 
 export default function TareasPage() {
   const [tasks, setTasks] = useState<Task[] | null>(null);
@@ -92,7 +93,7 @@ export default function TareasPage() {
         <p className="text-muted">Cargando...</p>
       ) : tasks.length === 0 ? (
         <div className="pixel-card p-6 text-center">
-          <p className="text-muted">No hay tareas. Crea tu primera tarea via bot 📋</p>
+          <p className="text-muted flex items-center justify-center gap-1">No hay tareas. Crea tu primera tarea via bot <PixelIcon name="nav-tareas" size={14} className="inline-block" /></p>
         </div>
       ) : viewMode === "list" ? (
         <TaskList tasks={filteredTasks} />

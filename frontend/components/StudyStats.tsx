@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 
 interface StudyStatsProps {
   month: number;
@@ -136,25 +137,37 @@ export default function StudyStats({ month, year }: StudyStatsProps) {
       <h3 className="pixel-card-title">Stats del mes</h3>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <p className="text-muted text-xs mb-1">📖 Total horas</p>
+          <div className="flex items-center gap-1 mb-1">
+            <PixelIcon name="stat-hours" size={16} className="shrink-0" />
+            <p className="text-muted text-xs">Total horas</p>
+          </div>
           <p className="text-mana text-lg font-semibold">
             {state.totalHours.toFixed(1)}h
           </p>
         </div>
         <div>
-          <p className="text-muted text-xs mb-1">📝 Sesiones</p>
+          <div className="flex items-center gap-1 mb-1">
+            <PixelIcon name="stat-sessions" size={16} className="shrink-0" />
+            <p className="text-muted text-xs">Sesiones</p>
+          </div>
           <p className="text-gold text-lg font-semibold">
             {state.totalSessions}
           </p>
         </div>
         <div>
-          <p className="text-muted text-xs mb-1">🏆 Mas estudiada</p>
+          <div className="flex items-center gap-1 mb-1">
+            <PixelIcon name="stat-top" size={16} className="shrink-0" />
+            <p className="text-muted text-xs">Mas estudiada</p>
+          </div>
           <p className="text-xp text-sm font-semibold">
             {state.topSubject ?? "-"}
           </p>
         </div>
         <div>
-          <p className="text-muted text-xs mb-1">📊 Promedio diario</p>
+          <div className="flex items-center gap-1 mb-1">
+            <PixelIcon name="stat-average" size={16} className="shrink-0" />
+            <p className="text-muted text-xs">Promedio diario</p>
+          </div>
           <p className="text-coral text-lg font-semibold">
             {state.avgDaily.toFixed(1)}h
           </p>

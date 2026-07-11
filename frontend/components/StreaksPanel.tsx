@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 
 interface HabitRow {
   name: string;
@@ -41,7 +42,7 @@ export default function StreaksPanel() {
               habit.current_streak > 0 ? "bg-[--color-bg-surface-hover]" : ""
             }`}
           >
-            <span className="text-lg">🔥</span>
+            <PixelIcon name="streak-fire" size={20} className="shrink-0" />
             <span
               className={
                 habit.current_streak > 0 ? "text-xp" : "text-muted"

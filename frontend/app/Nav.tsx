@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import PixelIcon from "@/components/PixelIcon";
 
 const links = [
-  { href: "/dashboard", label: "Dashboard", icon: "⚔️" },
-  { href: "/habitos", label: "Habitos", icon: "🔥" },
-  { href: "/finanzas", label: "Finanzas", icon: "💰" },
-  { href: "/tareas", label: "Tareas", icon: "📋" },
-  { href: "/estudios", label: "Estudios", icon: "📚" },
-  { href: "/entrenamientos", label: "Entreno", icon: "💪" },
-  { href: "/perfil", label: "Perfil", icon: "🛡️" },
+  { href: "/dashboard", label: "Dashboard", spriteKey: "nav-dashboard" },
+  { href: "/habitos", label: "Habitos", spriteKey: "nav-habitos" },
+  { href: "/finanzas", label: "Finanzas", spriteKey: "nav-finanzas" },
+  { href: "/tareas", label: "Tareas", spriteKey: "nav-tareas" },
+  { href: "/estudios", label: "Estudios", spriteKey: "nav-estudios" },
+  { href: "/entrenamientos", label: "Entreno", spriteKey: "nav-entrenamientos" },
+  { href: "/perfil", label: "Perfil", spriteKey: "nav-perfil" },
 ];
 
 export default function Nav({
@@ -34,13 +35,13 @@ export default function Nav({
               key={link.href}
               href={link.href}
               onClick={onNavigate}
-              className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px]
+              className={`nav-item flex items-center gap-3 px-4 py-3 text-sm border-l-[3px]
                 ${isActive
-                  ? "bg-[--color-bg-surface] text-[--color-gold] border-[--color-mana]"
+                  ? "nav-item-active text-[--color-gold] border-[--color-purple]"
                   : "text-[--color-text-muted] hover:bg-[--color-bg-surface-hover] hover:text-[--color-text] border-transparent"
                 }`}
             >
-              <span className="text-lg">{link.icon}</span>
+              <PixelIcon name={link.spriteKey} size={40} className="shrink-0" />
               {link.label}
             </Link>
           );
@@ -50,32 +51,40 @@ export default function Nav({
           onClick={signOut}
           className="flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px] text-hp hover:bg-[--color-bg-surface-hover] hover:text-[--color-text] border-transparent"
         >
-          <span className="text-lg">🚪</span>
+          <PixelIcon name="nav-logout" size={40} className="shrink-0" />
           Salir
         </button>
       </>
     );
   }
 
-  // Horizontal mode (fallback, not used in current layout)
+  // Horizontal mode — desktop top bar
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-4 items-center">
       {links.map((link) => {
         const isActive = pathname === link.href;
         return (
           <Link
             key={link.href}
             href={link.href}
-            className={`text-sm transition-colors
+            className={`nav-item text-xs flex items-center gap-1 px-2 py-1 rounded
               ${isActive
-                ? "text-[--color-gold]"
+                ? "nav-item-active text-[--color-gold]"
                 : "text-[--color-text-muted] hover:text-[--color-text]"
               }`}
           >
-            {link.icon} {link.label}
+            <PixelIcon name={link.spriteKey} size={32} className="shrink-0" />
+            <span className="hidden lg:inline">{link.label}</span>
           </Link>
         );
       })}
+      <button
+        onClick={signOut}
+        className="text-xs transition-colors flex items-center gap-1 px-1 py-1 text-hp hover:text-[--color-text]"
+      >
+        <PixelIcon name="nav-logout" size={32} className="shrink-0" />
+        <span className="hidden lg:inline">Salir</span>
+      </button>
     </div>
   );
 }

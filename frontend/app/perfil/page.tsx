@@ -64,21 +64,21 @@ export default function PerfilPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-gold">Tu Perfil RPG</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <AvatarCard
-          displayName={profile.display_name}
-          avatarLevel={profile.avatar_level}
-          currentLevel={profile.current_level}
-          streakShields={profile.streak_shields}
-        />
-        <XPBar totalXp={profile.total_xp} currentLevel={profile.current_level} />
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-1">
-          <StreaksPanel />
+        {/* Columna izquierda: Avatar + XP (apilados verticalmente) */}
+        <div className="lg:col-span-1 flex flex-col gap-4">
+          <AvatarCard
+            displayName={profile.display_name}
+            avatarLevel={profile.avatar_level}
+            currentLevel={profile.current_level}
+            streakShields={profile.streak_shields}
+          />
+          <XPBar totalXp={profile.total_xp} currentLevel={profile.current_level} />
         </div>
-        <div className="lg:col-span-2">
+
+        {/* Columna derecha: Streaks + Logros (con scroll interno en desktop) */}
+        <div className="lg:col-span-2 flex flex-col gap-4 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:pr-2">
+          <StreaksPanel />
           <BadgesGrid />
         </div>
       </div>

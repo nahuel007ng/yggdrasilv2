@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 
 const currencyFormatter = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -159,7 +160,7 @@ export default function MonthlySummary({
         <h3 className="pixel-card-title">Ingresos</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <p className="text-muted text-xs mb-1">Cobrados ✅</p>
+            <p className="text-muted text-xs mb-1 flex items-center gap-1">Cobrados <PixelIcon name="status-complete" size={12} /></p>
             <p className="text-xp text-base font-semibold">
               {formatARS(state.incomeCompleted)}
             </p>
@@ -190,7 +191,7 @@ export default function MonthlySummary({
         <h3 className="pixel-card-title">Gastos</h3>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <p className="text-muted text-xs mb-1">Pagados ✅</p>
+            <p className="text-muted text-xs mb-1 flex items-center gap-1">Pagados <PixelIcon name="status-complete" size={12} /></p>
             <p className="text-hp text-base font-semibold">
               {formatARS(state.expenseCompleted)}
             </p>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 
 interface ExerciseSet {
   id: string;
@@ -84,7 +85,7 @@ export default function WorkoutHistory({ month, year }: WorkoutHistoryProps) {
 
       {!error && workouts !== null && workouts.length === 0 && (
         <p className="text-muted text-sm">
-          Sin entrenamientos este mes. Registra tu primer workout via bot 💪
+          Sin entrenamientos este mes. Registra tu primer workout via bot <PixelIcon name="nav-entrenamientos" size={14} className="inline-block" />
         </p>
       )}
 

@@ -25,6 +25,8 @@
   --color-gold: #f7d51d;
   --color-coral: #e8845a;
   --color-coral-light: #fd9978;
+  --color-purple: #8b5cf6;
+  --color-purple-dim: rgba(139, 92, 246, 0.3);
 
   /* --- Tipografia --- */
   --font-pixel: "Press Start 2P", cursive;
@@ -222,6 +224,79 @@ h3 { font-size: 12px; }
 /* --- Nav active state --- */
 .nav-link-active {
   color: var(--color-gold) !important;
+}
+
+.nav-item {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  position: relative;
+}
+
+.nav-item::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--color-purple);
+  transition: width 0.2s ease, left 0.2s ease;
+}
+
+.nav-item-active {
+  background-color: var(--color-purple-dim);
+}
+
+.nav-item-active::after {
+  width: 100%;
+  left: 0;
+}
+
+/* --- Pixelated rendering for sprite images --- */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* --- Avatar hero: video MP4 + recuadro PNG overlay --- */
+/* Recuadro: 1600x1100 (16:11). Video: 1280x720 (16:9) centrado dentro. */
+.avatar-hero-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+}
+
+.avatar-hero-video {
+  width: 80%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  z-index: 1;
+}
+
+.avatar-hero-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 2;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+
+.avatar-hero-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 4rem;
+  z-index: 1;
 }
 
 /* --- Mobile sidebar drawer animation --- */

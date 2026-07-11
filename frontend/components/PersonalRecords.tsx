@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 
 interface PRRecord {
   name: string;
@@ -125,7 +126,7 @@ export default function PersonalRecords() {
                 key={pr.name}
                 className="flex items-center gap-2 p-2 bg-[--color-bg] pixel-border"
               >
-                <span>🏆</span>
+                <PixelIcon name="pr-trophy" size={20} className="shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{pr.name}</p>
                   <p className="text-mana text-xs">{detail}</p>

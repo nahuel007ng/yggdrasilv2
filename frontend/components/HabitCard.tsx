@@ -1,5 +1,7 @@
 "use client";
 
+import PixelIcon from "@/components/PixelIcon";
+
 export interface Habit {
   id: string;
   name: string;
@@ -33,9 +35,9 @@ export default function HabitCard({ habit, selected, onSelect }: HabitCardProps)
           {habit.name}
         </span>
       </div>
-      <p className="text-xp text-xs">🔥 Racha: {habit.current_streak} dias</p>
-      <p className="text-[--color-text] text-xs">
-        🏆 Record: {habit.longest_streak} dias
+      <p className="text-xp text-xs flex items-center gap-1"><PixelIcon name="streak-fire" size={14} /> Racha: {habit.current_streak} dias</p>
+      <p className="text-[--color-text] text-xs flex items-center gap-1">
+        <PixelIcon name="pr-trophy" size={14} /> Record: {habit.longest_streak} dias
       </p>
       <p className="text-muted text-xs">Frecuencia: {habit.frequency}</p>
     </button>

@@ -1,5 +1,7 @@
 "use client";
 
+import PixelIcon from "@/components/PixelIcon";
+
 export interface Task {
   id: string;
   title: string;
@@ -25,11 +27,11 @@ const STATUS_COLORS: Record<string, string> = {
   archived: "text-muted",
 };
 
-const PRIORITY_ICONS: Record<string, string> = {
-  urgent_important: "🔴",
-  urgent_not_important: "🟡",
-  not_urgent_important: "🟠",
-  not_urgent_not_important: "⚪",
+const PRIORITY_SPRITES: Record<string, string> = {
+  urgent_important: "priority-urgent-important",
+  urgent_not_important: "priority-urgent-not-important",
+  not_urgent_important: "priority-not-urgent-important",
+  not_urgent_not_important: "priority-not-urgent-not-important",
 };
 
 export default function TaskCard({ task }: { task: Task }) {
@@ -41,7 +43,7 @@ export default function TaskCard({ task }: { task: Task }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span>{PRIORITY_ICONS[task.priority] ?? "⚪"}</span>
+            <PixelIcon name={PRIORITY_SPRITES[task.priority] ?? "priority-not-urgent-not-important"} size={16} className="shrink-0" />
             <span className="text-sm font-medium truncate">{task.title}</span>
           </div>
           {task.description && (

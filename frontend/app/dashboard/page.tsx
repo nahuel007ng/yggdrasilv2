@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import AvatarHero from "@/components/AvatarHero";
+import PixelIcon from "@/components/PixelIcon";
+import { getRankName } from "@/lib/spriteMap";
 
 interface UserProfile {
   display_name: string | null;
@@ -11,14 +14,6 @@ interface UserProfile {
   current_level: number;
   streak_shields: number;
 }
-
-const AVATAR_BY_TIER: Record<number, string> = {
-  1: "⚔️",
-  2: "🗡️",
-  3: "🛡️",
-  4: "👑",
-  5: "🐉",
-};
 
 function xpForLevel(n: number): number {
   return Math.floor((100 * n * (n + 1)) / 2);
@@ -218,14 +213,12 @@ export default function DashboardPage() {
     "$" + n.toLocaleString("es-AR", { maximumFractionDigits: 0 });
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Hero card */}
-      {profile && (
-        <HeroCard profile={profile} />
-      )}
+    <div className="grid grid-cols-1 md:grid-cols-[40%_1fr] gap-4">
+      {/* Columna izquierda (40%): Avatar hero + barra de XP/nivel */}
+      {profile && <HeroCard profile={profile} />}
 
-      {/* Functional cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Columna derecha (60%): Finanzas + Hábitos + Tareas */}
+      <div className="flex flex-col gap-4">
         <MoneyCard
           available={available}
           incomeCompleted={incomeCompleted}
@@ -256,12 +249,10 @@ export default function DashboardPage() {
 }
 
 // ============================================================
-// HeroCard — avatar + nivel + XP bar compacta
+// HeroCard — Avatar hero (video + recuadro) + nivel + XP bar
 // ============================================================
 
 function HeroCard({ profile }: { profile: UserProfile }) {
-  const safeTier = Math.min(Math.max(profile.avatar_level || 1, 1), 5);
-  const emoji = AVATAR_BY_TIER[safeTier] ?? AVATAR_BY_TIER[1];
   const xpForCurrent = xpForLevel(profile.current_level);
   const xpForNext = xpForLevel(profile.current_level + 1);
   const xpSpan = Math.max(xpForNext - xpForCurrent, 1);
@@ -269,48 +260,43 @@ function HeroCard({ profile }: { profile: UserProfile }) {
   const progress = Math.min(Math.max((xpInLevel / xpSpan) * 100, 0), 100);
 
   return (
-    <div className="pixel-card">
-      <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4">
-        <span
-          className="text-5xl"
-          aria-label={`Avatar tier ${safeTier}`}
-          style={{ textShadow: "0 0 20px rgba(74, 158, 142, 0.3)" }}
-        >
-          {emoji}
-        </span>
-        <div className="flex-1 w-full">
-          <div className="flex items-center gap-2 flex-wrap mb-2">
-            <span className="text-pixel text-mana text-sm">
-              Nivel {profile.current_level}
-            </span>
-            <span className="text-muted">·</span>
-            <span
-              className="text-[--color-text] break-words"
-              style={{ fontSize: "14px" }}
-            >
-              {profile.display_name || "Aventurero"}
-            </span>
-            {profile.streak_shields > 0 && (
-              <span className="text-xp text-xs">🛡️ x{profile.streak_shields}</span>
-            )}
-          </div>
-          <div className="pixel-progress">
-            <div
-              className="pixel-progress-fill is-xp"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="flex justify-between items-center mt-2">
-            <p className="text-muted text-xs">
-              {xpInLevel.toLocaleString()} / {xpSpan.toLocaleString()} XP
-            </p>
-            <Link
-              href="/perfil"
-              className="text-mana text-xs hover:text-[--color-mana-light] transition-colors"
-            >
-              Ver perfil completo →
-            </Link>
-          </div>
+    <div className="flex flex-col gap-2">
+      <AvatarHero
+        avatarLevel={profile.avatar_level || 1}
+        showRankName={false}
+      />
+      <div className="pixel-card">
+        <div className="flex items-center gap-2 flex-wrap mb-2">
+          <span className="text-pixel text-mana text-sm">
+            Nivel {profile.current_level}
+          </span>
+          <span className="text-muted">·</span>
+          <span
+            className="text-[--color-text] break-words"
+            style={{ fontSize: "14px" }}
+          >
+            {profile.display_name || "Aventurero"} — {getRankName(profile.avatar_level || 1)}
+          </span>
+          {profile.streak_shields > 0 && (
+            <span className="text-xp text-xs flex items-center gap-1"><PixelIcon name="shield" size={14} /> x{profile.streak_shields}</span>
+          )}
+        </div>
+        <div className="pixel-progress">
+          <div
+            className="pixel-progress-fill is-xp"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-muted text-xs">
+            {xpInLevel.toLocaleString()} / {xpSpan.toLocaleString()} XP
+          </p>
+          <Link
+            href="/perfil"
+            className="text-mana text-xs hover:text-[--color-mana-light] transition-colors"
+          >
+            Ver perfil completo →
+          </Link>
         </div>
       </div>
     </div>
@@ -338,7 +324,7 @@ function MoneyCard({
 }) {
   return (
     <div className="pixel-card">
-      <h3 className="pixel-card-title">💰 Disponible</h3>
+      <h3 className="pixel-card-title flex items-center gap-2"><PixelIcon name="nav-finanzas" size={16} /> Disponible</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>
       ) : (
@@ -381,7 +367,7 @@ function HabitsCard({
 }) {
   return (
     <div className="pixel-card">
-      <h3 className="pixel-card-title">✅ Hábitos hoy</h3>
+      <h3 className="pixel-card-title flex items-center gap-2"><PixelIcon name="nav-habitos" size={16} /> Hábitos hoy</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>
       ) : total === 0 ? (
@@ -406,7 +392,7 @@ function HabitsCard({
                   {h.name}
                 </span>
                 <span className="ml-auto">
-                  {completedIds.has(h.id) ? "✅" : "⬜"}
+                  {completedIds.has(h.id) ? <PixelIcon name="status-complete" size={14} /> : <PixelIcon name="status-pending" size={14} />}
                 </span>
               </li>
             ))}
@@ -430,11 +416,11 @@ function TasksCard({
 }) {
   return (
     <div className="pixel-card">
-      <h3 className="pixel-card-title">📋 Tareas hoy</h3>
+      <h3 className="pixel-card-title flex items-center gap-2"><PixelIcon name="nav-tareas" size={16} /> Tareas hoy</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>
       ) : tasks.length === 0 ? (
-        <p className="text-muted">Sin tareas pendientes para hoy 🎉</p>
+        <p className="text-muted flex items-center gap-1">Sin tareas pendientes para hoy <PixelIcon name="celebration" size={16} /></p>
       ) : (
         <div className="flex flex-col gap-1">
           <p className="text-mana text-sm mb-1">
@@ -468,7 +454,7 @@ function UpcomingCard({
 }) {
   return (
     <div className="pixel-card">
-      <h3 className="pixel-card-title">📅 Próximos pagos/cobros</h3>
+      <h3 className="pixel-card-title">Próximos pagos/cobros</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>
       ) : upcoming.length === 0 ? (
