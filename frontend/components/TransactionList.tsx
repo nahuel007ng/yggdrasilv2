@@ -167,7 +167,7 @@ export default function TransactionList({
                 {state.transactions.map((t) => {
                   const cat = Array.isArray(t.categories)
                     ? t.categories[0]
-                    : null;
+                    : (t.categories as unknown as CategoryJoin | null);
                   const spriteKey = resolveCategorySprite(cat?.name, cat?.icon);
                   const isIncome = t.type === "income";
                   const isPending = t.status === "pending";

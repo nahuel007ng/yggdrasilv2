@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AcademicProgress from "@/components/AcademicProgress";
 import SubjectProgress from "@/components/SubjectProgress";
 import StudyCalendar from "@/components/StudyCalendar";
 import StudyStats from "@/components/StudyStats";
@@ -73,6 +74,8 @@ export default function EstudiosPage() {
       </div>
 
       <StudyStats month={month} year={year} />
+
+      <AcademicProgress />
 
       <SubjectProgress />
 

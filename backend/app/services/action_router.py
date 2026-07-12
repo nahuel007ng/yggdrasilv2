@@ -6,7 +6,7 @@ from app.services.study import log_study
 from app.services.workouts import log_workout
 from app.services.reminders import set_reminder
 from app.services.queries import query_data
-from app.services.gamification import award_xp
+from app.services.gamification import award_xp, get_user_stats
 from app.services.badges import check_and_award_badges
 from app.services.daily_quests import update_quest_progress
 
@@ -89,8 +89,38 @@ async def _track_quests_and_award_bonus(action_type_value: str) -> str:
     return _format_quest_feedback(quest_result)
 
 
-async def execute_action(parsed) -> str:
-    """Ejecuta la acción parseada y devuelve un mensaje de respuesta para el usuario."""
+async def _build_response(
+    reply: str,
+    xp_result: dict | None = None,
+    badges_awarded: list[dict] | None = None,
+) -> dict:
+    """Construye la respuesta estructurada para el bot y el API de chat."""
+    if xp_result is None:
+        stats = await get_user_stats()
+        xp_result = {
+            "xp_awarded": 0,
+            "current_level": stats["current_level"],
+        }
+
+    badges_earned = [badge["name"] for badge in badges_awarded] if badges_awarded else []
+
+    return {
+        "reply": reply,
+        "xp_gained": xp_result.get("xp_awarded", 0),
+        "level": xp_result.get("current_level", 0),
+        "badges_earned": badges_earned,
+    }
+
+
+async def execute_action(parsed, user_id: str | None = None) -> dict:
+    """Ejecuta la acción parseada y devuelve un mensaje de respuesta estructurado.
+
+    Args:
+        parsed: Resultado del parser (ParsedAction o ParseError).
+        user_id: UUID del usuario (opcional). En el sistema actual se asume un
+            único usuario por instancia, por lo que el parámetro se recibe para
+            validación futura pero la ejecución utiliza get_user_id().
+    """
     try:
         if parsed.action == ActionType.ADD_EXPENSE:
             result = await add_expense(parsed.payload)
@@ -105,8 +135,8 @@ async def execute_action(parsed) -> str:
                 )
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
-                return msg
-            return f"Error al registrar gasto: {result.get('error', 'desconocido')}"
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al registrar gasto: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.ADD_EXPECTED:
             result = await add_expected_transaction(parsed.payload)
@@ -125,8 +155,8 @@ async def execute_action(parsed) -> str:
                 )
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
-                return msg
-            return f"Error al registrar transacción esperada: {result.get('error', 'desconocido')}"
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al registrar transacción esperada: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.CONFIRM_TRANSACTION:
             result = await confirm_transaction(parsed.payload)
@@ -143,10 +173,10 @@ async def execute_action(parsed) -> str:
                     )
                     msg += _format_badge_feedback(badges)
                     msg += await _track_quests_and_award_bonus(parsed.action.value)
-                    return msg
+                    return await _build_response(msg, xp_result, badges)
                 else:
-                    return "❌ Transacción cancelada."
-            return f"Error al confirmar transacción: {result.get('error', 'desconocido')}"
+                    return await _build_response("❌ Transacción cancelada.")
+            return await _build_response(f"Error al confirmar transacción: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.TOGGLE_HABIT:
             result = await toggle_habit(parsed.payload)
@@ -163,8 +193,8 @@ async def execute_action(parsed) -> str:
                 )
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
-                return msg
-            return f"Error con hábito: {result.get('error', 'desconocido')}"
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error con hábito: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.ADD_TASK:
             result = await add_task(parsed.payload)
@@ -179,8 +209,8 @@ async def execute_action(parsed) -> str:
                 )
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
-                return msg
-            return f"Error al crear tarea: {result.get('error', 'desconocido')}"
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al crear tarea: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.LOG_STUDY:
             result = await log_study(parsed.payload)
@@ -195,8 +225,8 @@ async def execute_action(parsed) -> str:
                 )
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
-                return msg
-            return f"Error al registrar estudio: {result.get('error', 'desconocido')}"
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al registrar estudio: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.LOG_WORKOUT:
             result = await log_workout(parsed.payload)
@@ -210,8 +240,8 @@ async def execute_action(parsed) -> str:
                 )
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
-                return msg
-            return f"Error al registrar entrenamiento: {result.get('error', 'desconocido')}"
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al registrar entrenamiento: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.SET_REMINDER:
             result = await set_reminder(parsed.payload)
@@ -227,17 +257,17 @@ async def execute_action(parsed) -> str:
                 )
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
-                return msg
-            return f"Error al crear recordatorio: {result.get('error', 'desconocido')}"
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al crear recordatorio: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.QUERY_DATA:
             result = await query_data(parsed.payload)
             if result["success"]:
-                return result["summary"]
-            return f"Error al consultar datos: {result.get('error', 'desconocido')}"
+                return await _build_response(result["summary"])
+            return await _build_response(f"Error al consultar datos: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.UNKNOWN:
-            return (
+            return await _build_response(
                 "No entendí qué querés hacer. Probá con algo como:\n"
                 "- 'gasté 200 en comida'\n"
                 "- 'el 10 cobro NODO 80000'\n"
@@ -249,7 +279,7 @@ async def execute_action(parsed) -> str:
             )
 
         else:
-            return f"Acción '{parsed.action}' no está implementada todavía."
+            return await _build_response(f"Acción '{parsed.action}' no está implementada todavía.")
 
     except Exception as e:
-        return f"Error al ejecutar la acción: {e!s}"
+        return await _build_response(f"Error al ejecutar la acción: {e!s}")

@@ -57,4 +57,4 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Ejecutar acción
     response = await execute_action(result)
-    await update.message.reply_text(response)
+    await update.message.reply_text(response["reply"])

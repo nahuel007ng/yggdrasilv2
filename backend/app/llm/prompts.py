@@ -1,9 +1,33 @@
+import json
 from datetime import date, timedelta
+from pathlib import Path
+
+_keywords_path = Path(__file__).parent / "keywords.json"
+with open(_keywords_path, "r", encoding="utf-8") as f:
+    KEYWORDS: dict = json.load(f)
+
+
+def _build_keywords_section() -> str:
+    lines = ["\nSINÓNIMOS Y COMERCIOS CONOCIDOS (comparar case-insensitive):"]
+    for category, words in KEYWORDS["expense_categories"].items():
+        if words:
+            lines.append(f"- {category}: {', '.join(words)}")
+    lines.append("\nALIAS DE MATERIAS (si el usuario usa un alias, mapeá al nombre completo):")
+    for subject, aliases in KEYWORDS["subject_aliases"].items():
+        lines.append(f"- {subject}: {', '.join(aliases)}")
+    return "\n".join(lines)
+
+
+def _build_subjects_list() -> str:
+    subjects = list(KEYWORDS["subject_aliases"].keys())
+    return "\n".join(f"- {s}" for s in subjects)
 
 
 def get_system_prompt() -> str:
     today = date.today().isoformat()
     yesterday = (date.today() - timedelta(days=1)).isoformat()
+    keywords_section = _build_keywords_section()
+    subjects_list = _build_subjects_list()
     return f"""Sos un asistente de organización personal. Tu ÚNICA tarea es parsear mensajes del usuario y devolver un JSON estructurado.
 
 FECHA DE HOY: {today}
@@ -46,7 +70,7 @@ ACCIONES VÁLIDAS:
 7. LOG_WORKOUT — El usuario registra un entrenamiento con ejercicios específicos.
    Campos requeridos: exercises (lista de ejercicios con detalle)
    Campos opcionales: duration_minutes (duración total), notes, date (default: hoy)
-   Cada ejercicio: {{ "name": "nombre", "sets": N, "reps": N, "weight": N, "duration_seconds": N }}
+   Cada ejercicio: {{"name": "nombre", "sets": N, "reps": N, "weight": N, "duration_seconds": N}}
    Ejemplos:
    - "hice 3x10 flexiones y 3x15 sentadillas" → exercises: [{{"name": "Flexiones", "sets": 3, "reps": 10}}, {{"name": "Sentadillas", "sets": 3, "reps": 15}}]
    - "entrené 45 minutos: flexiones, plancha 1 min, burpees" → duration_minutes: 45, exercises: [{{"name": "Flexiones"}}, {{"name": "Plancha", "duration_seconds": 60}}, {{"name": "Burpees"}}]
@@ -75,20 +99,17 @@ CATEGORÍAS DE GASTOS (usar la más cercana):
 - Educación
 - Otros
 
-MATERIAS DE ESTUDIO (usar la más cercana):
-- Análisis Matemático I
-- Programación II
-- Geometría
-- Lógica
-- Estadística y CD I
-- Estructura de Datos y Algoritmos I
+{keywords_section}
+
+MATERIAS DE ESTUDIO (usar la más cercana, 38 materias de la carrera):
+{subjects_list}
 
 REGLAS:
 - Respondé SOLO con un JSON válido, sin texto antes ni después.
 - Si no podés determinar la acción, usá action: "UNKNOWN".
 - Si el usuario dice "ayer", usá la fecha {yesterday}.
 - Si el usuario dice "mañana", calculá la fecha como {today} más 1 día.
-- "uber" es Transporte. "uber eats" o "pedidos ya" es Comida.
+- Usá los sinónimos/comercios de arriba para categorizar correctamente. Comparar case-insensitive.
 - Los montos siempre son en ARS (pesos argentinos).
 - Si no hay monto explícito en un gasto, poné amount: null.
 - Si dice "tengo que X" o "necesito X", es ADD_TASK.
@@ -96,7 +117,7 @@ REGLAS:
 - DIFERENCIA ADD_EXPENSE vs ADD_EXPECTED: si el usuario dice "gasté" o "pagué" (pasado, ya ocurrió), es ADD_EXPENSE. Si dice "voy a cobrar/pagar", "espero gastar", "el día X cobro Y" (futuro, aún no ocurrió), es ADD_EXPECTED.
 - CONFIRM_TRANSACTION: solo aplica cuando el usuario responde a un recordatorio de transacción pendiente (ej. "sí, cobré" o "no, no se concretó"). Si hay un transaction_id en el contexto, incluirlo.
 - DIFERENCIA TOGGLE_HABIT vs LOG_WORKOUT: si el usuario dice algo genérico como "hice ejercicio", "entrené", "fui al gym" SIN detallar ejercicios, es TOGGLE_HABIT. Si menciona ejercicios específicos con sets/reps/peso (ej. "hice 3x10 flexiones"), es LOG_WORKOUT.
-- Si dice "estudié X" donde X es una materia o tema, es LOG_STUDY. Si dice "tengo que estudiar X", es ADD_TASK.
+- Si dice "estudié X" donde X es una materia o alias de materia, es LOG_STUDY. Mapeá el alias al nombre completo de la materia. Si dice "tengo que estudiar X", es ADD_TASK.
 - "recordame" o "acordate" siempre es SET_REMINDER.
 - "cuánto", "cuántas", "mis hábitos", "tareas pendientes", "resumen" implican QUERY_DATA.
 - Para QUERY_DATA: "hoy" = date_from y date_to iguales a hoy. "esta semana" = lunes a hoy. "este mes" = día 1 del mes actual a hoy.

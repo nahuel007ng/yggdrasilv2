@@ -1,6 +1,6 @@
 -- =============================================================
 -- Yggdrasil v2 — Schema SQL para Supabase (PostgreSQL 15+)
--- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth, correcciones-v1
+-- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth, correcciones-v1, academico-nlu-chat
 -- Nota: todas las tablas tienen columna user_id UUID NOT NULL REFERENCES auth.users(id)
 --       agregada por migration-auth.sql. user_profile tiene telegram_chat_id BIGINT.
 -- =============================================================
@@ -91,12 +91,21 @@ CREATE TABLE tasks (
 CREATE TABLE subjects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
+    code INTEGER UNIQUE,
+    status TEXT DEFAULT 'pendiente',
+    grade INTEGER,
+    year INTEGER,
+    semester INTEGER,
+    correlative_codes INTEGER[],
     target_hours DOUBLE PRECISION,
     color TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE INDEX idx_subjects_status ON subjects (status);
+CREATE INDEX idx_subjects_year ON subjects (year);
 
 -- 8. Temas dentro de cada materia
 CREATE TABLE topics (

@@ -2,7 +2,9 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.chat import router as chat_router
 from app.bot.setup import create_bot_application
 from app.scheduler import start_scheduler
 
@@ -38,6 +40,20 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Yggdrasil v2", lifespan=lifespan)
+
+# CORS para la webapp en local y Vercel
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://*.vercel.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(chat_router)
 
 
 @app.get("/health")
