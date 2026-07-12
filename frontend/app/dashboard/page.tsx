@@ -231,11 +231,11 @@ export default function DashboardPage() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[40%_1fr] gap-4">
-      {/* Columna izquierda (40%): Avatar hero + barra de XP/nivel */}
-      {profile && <HeroCard profile={profile} />}
-
-      {/* Misiones diarias — ancho completo, debajo del HeroCard */}
-      <DailyQuests className="md:col-span-2" />
+      {/* Columna izquierda (40%): Avatar hero + misiones + XP */}
+      <div className="flex flex-col gap-4">
+        {profile && <HeroCard profile={profile} />}
+        <DailyQuests />
+      </div>
 
       {/* Columna derecha (60%): Finanzas + Hábitos + Tareas */}
       <div className="flex flex-col gap-4">

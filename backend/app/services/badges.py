@@ -17,10 +17,7 @@ class BadgeCode(str, Enum):
     STREAK_7 = "streak_7"
     STREAK_30 = "streak_30"
     PERFECT_WEEK = "perfect_week"
-    # Niveles / XP
-    LEVEL_5 = "level_5"
-    LEVEL_10 = "level_10"
-    LEVEL_25 = "level_25"
+    # XP
     XP_1000 = "xp_1000"
     # Rangos
     RANK_DESPERTADO = "rank_despertado"
@@ -45,9 +42,6 @@ BADGE_NAMES: dict[BadgeCode, str] = {
     BadgeCode.STREAK_7: "Semana de fuego",
     BadgeCode.STREAK_30: "Mes imparable",
     BadgeCode.PERFECT_WEEK: "Semana perfecta",
-    BadgeCode.LEVEL_5: "Nivel 5",
-    BadgeCode.LEVEL_10: "Nivel 10",
-    BadgeCode.LEVEL_25: "Nivel 25",
     BadgeCode.XP_1000: "Mil puntos",
     BadgeCode.RANK_DESPERTADO: "Despertado",
     BadgeCode.RANK_MAESTRO: "Maestro",
@@ -95,9 +89,6 @@ BADGES_BY_ACTION: dict[ActionType, list[BadgeCode]] = {
 
 # Badges que dependen de XP/nivel (se agregan si xp_result indica progreso)
 LEVEL_XP_BADGES: list[BadgeCode] = [
-    BadgeCode.LEVEL_5,
-    BadgeCode.LEVEL_10,
-    BadgeCode.LEVEL_25,
     BadgeCode.XP_1000,
     BadgeCode.RANK_DESPERTADO,
     BadgeCode.RANK_MAESTRO,
@@ -233,16 +224,7 @@ async def _check_badge_condition(
             return True
         return False
 
-    # --- Niveles / XP ---
-    if badge_code == BadgeCode.LEVEL_5:
-        return xp_result is not None and xp_result.get("current_level", 0) >= 5
-
-    if badge_code == BadgeCode.LEVEL_10:
-        return xp_result is not None and xp_result.get("current_level", 0) >= 10
-
-    if badge_code == BadgeCode.LEVEL_25:
-        return xp_result is not None and xp_result.get("current_level", 0) >= 25
-
+    # --- XP ---
     if badge_code == BadgeCode.XP_1000:
         return xp_result is not None and xp_result.get("total_xp", 0) >= 1000
 
