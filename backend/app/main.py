@@ -70,3 +70,12 @@ async def debug_check_reminders():
 
     await job_check_reminders()
     return {"status": "sent"}
+
+
+@app.get("/debug/daily-quests")
+async def debug_daily_quests():
+    """Endpoint temporal para testear generacion de daily quests."""
+    from app.services.daily_quests import get_today_quests
+
+    quests = await get_today_quests()
+    return {"quests": quests, "count": len(quests)}

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import AvatarHero from "@/components/AvatarHero";
 import PixelIcon from "@/components/PixelIcon";
+import DailyQuests from "@/components/DailyQuests";
 import { getRankName } from "@/lib/spriteMap";
 
 interface UserProfile {
@@ -16,7 +17,7 @@ interface UserProfile {
 }
 
 function xpForLevel(n: number): number {
-  return Math.floor((100 * n * (n + 1)) / 2);
+  return Math.floor((10 * n * (n + 1)) / 2);
 }
 
 interface TxRow {
@@ -86,7 +87,7 @@ export default function DashboardPage() {
   const [upcoming, setUpcoming] = useState<UpcomingTxRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchAll = useCallback(() => {
     const now = new Date();
     const monthStart = ymdLocal(startOfMonth(now));
     const monthEnd = ymdLocal(endOfMonth(now));
@@ -167,6 +168,22 @@ export default function DashboardPage() {
     );
   }, []);
 
+  // Fetch on mount
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  // Refetch when user returns to the tab (e.g., after using the bot)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchAll();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [fetchAll]);
+
   if (error) {
     return (
       <div className="pixel-card">
@@ -216,6 +233,9 @@ export default function DashboardPage() {
     <div className="grid grid-cols-1 md:grid-cols-[40%_1fr] gap-4">
       {/* Columna izquierda (40%): Avatar hero + barra de XP/nivel */}
       {profile && <HeroCard profile={profile} />}
+
+      {/* Misiones diarias — ancho completo, debajo del HeroCard */}
+      <DailyQuests className="md:col-span-2" />
 
       {/* Columna derecha (60%): Finanzas + Hábitos + Tareas */}
       <div className="flex flex-col gap-4">

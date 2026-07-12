@@ -186,6 +186,27 @@ CREATE TABLE badges (
     unlocked_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 18. Daily quests (misiones diarias)
+CREATE TABLE daily_quests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) NOT NULL,
+    date DATE NOT NULL,
+    quest_type TEXT NOT NULL,
+    description TEXT NOT NULL,
+    target_count INTEGER NOT NULL,
+    current_count INTEGER DEFAULT 0,
+    is_completed BOOLEAN DEFAULT false,
+    xp_reward INTEGER NOT NULL,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_daily_quests_user_date ON daily_quests (user_id, date);
+
+ALTER TABLE daily_quests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own quests" ON daily_quests
+    FOR SELECT USING (auth.uid() = user_id);
+
 -- =============================================================
 -- Trigger: updated_at automático
 -- =============================================================

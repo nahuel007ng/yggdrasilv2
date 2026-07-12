@@ -8,6 +8,7 @@ from app.services.reminders import set_reminder
 from app.services.queries import query_data
 from app.services.gamification import award_xp
 from app.services.badges import check_and_award_badges
+from app.services.daily_quests import update_quest_progress
 
 
 def _format_xp_feedback(xp_result: dict) -> str:
@@ -69,6 +70,25 @@ def _format_badge_feedback(badges_awarded: list[dict]) -> str:
     return "\n" + "\n".join(lines)
 
 
+def _format_quest_feedback(quest_result: list[dict]) -> str:
+    """Formatea feedback de misiones diarias completadas."""
+    if not quest_result:
+        return ""
+    lines = []
+    for quest in quest_result:
+        lines.append(f"✅ Misión completada: {quest['description']} (+{quest['xp_reward']} XP bonus)")
+    return "\n" + "\n".join(lines)
+
+
+async def _track_quests_and_award_bonus(action_type_value: str) -> str:
+    """Trackea progreso de quests y otorga XP bonus por quests completadas."""
+    quest_result = await update_quest_progress(action_type_value)
+    # Otorgar XP bonus por cada quest completada
+    for completed_quest in quest_result:
+        await award_xp("QUEST_BONUS", amount_override=completed_quest["xp_reward"])
+    return _format_quest_feedback(quest_result)
+
+
 async def execute_action(parsed) -> str:
     """Ejecuta la acción parseada y devuelve un mensaje de respuesta para el usuario."""
     try:
@@ -84,6 +104,7 @@ async def execute_action(parsed) -> str:
                     xp_result=xp_result,
                 )
                 msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return msg
             return f"Error al registrar gasto: {result.get('error', 'desconocido')}"
 
@@ -103,6 +124,7 @@ async def execute_action(parsed) -> str:
                     xp_result=xp_result,
                 )
                 msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return msg
             return f"Error al registrar transacción esperada: {result.get('error', 'desconocido')}"
 
@@ -120,6 +142,7 @@ async def execute_action(parsed) -> str:
                         xp_result=xp_result,
                     )
                     msg += _format_badge_feedback(badges)
+                    msg += await _track_quests_and_award_bonus(parsed.action.value)
                     return msg
                 else:
                     return "❌ Transacción cancelada."
@@ -139,6 +162,7 @@ async def execute_action(parsed) -> str:
                     perfect_week_result=result.get("perfect_week"),
                 )
                 msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return msg
             return f"Error con hábito: {result.get('error', 'desconocido')}"
 
@@ -154,6 +178,7 @@ async def execute_action(parsed) -> str:
                     xp_result=xp_result,
                 )
                 msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return msg
             return f"Error al crear tarea: {result.get('error', 'desconocido')}"
 
@@ -169,6 +194,7 @@ async def execute_action(parsed) -> str:
                     xp_result=xp_result,
                 )
                 msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return msg
             return f"Error al registrar estudio: {result.get('error', 'desconocido')}"
 
@@ -183,6 +209,7 @@ async def execute_action(parsed) -> str:
                     xp_result=xp_result,
                 )
                 msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return msg
             return f"Error al registrar entrenamiento: {result.get('error', 'desconocido')}"
 
@@ -199,6 +226,7 @@ async def execute_action(parsed) -> str:
                     xp_result=xp_result,
                 )
                 msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return msg
             return f"Error al crear recordatorio: {result.get('error', 'desconocido')}"
 

@@ -22,6 +22,13 @@ class BadgeCode(str, Enum):
     LEVEL_10 = "level_10"
     LEVEL_25 = "level_25"
     XP_1000 = "xp_1000"
+    # Rangos
+    RANK_DESPERTADO = "rank_despertado"
+    RANK_MAESTRO = "rank_maestro"
+    RANK_SANTO = "rank_santo"
+    RANK_SOBERANO = "rank_soberano"
+    RANK_ESPIRITU = "rank_espiritu"
+    RANK_DIOS = "rank_dios"
     # Dominio-especificos
     STUDY_10H = "study_10h"
     WORKOUT_30 = "workout_30"
@@ -42,6 +49,12 @@ BADGE_NAMES: dict[BadgeCode, str] = {
     BadgeCode.LEVEL_10: "Nivel 10",
     BadgeCode.LEVEL_25: "Nivel 25",
     BadgeCode.XP_1000: "Mil puntos",
+    BadgeCode.RANK_DESPERTADO: "Despertado",
+    BadgeCode.RANK_MAESTRO: "Maestro",
+    BadgeCode.RANK_SANTO: "Santo",
+    BadgeCode.RANK_SOBERANO: "Soberano",
+    BadgeCode.RANK_ESPIRITU: "Espíritu",
+    BadgeCode.RANK_DIOS: "Dios",
     BadgeCode.STUDY_10H: "Diez horas de estudio",
     BadgeCode.WORKOUT_30: "30 entrenamientos",
     BadgeCode.ALL_ROUNDER: "Todoterreno",
@@ -86,6 +99,12 @@ LEVEL_XP_BADGES: list[BadgeCode] = [
     BadgeCode.LEVEL_10,
     BadgeCode.LEVEL_25,
     BadgeCode.XP_1000,
+    BadgeCode.RANK_DESPERTADO,
+    BadgeCode.RANK_MAESTRO,
+    BadgeCode.RANK_SANTO,
+    BadgeCode.RANK_SOBERANO,
+    BadgeCode.RANK_ESPIRITU,
+    BadgeCode.RANK_DIOS,
 ]
 
 
@@ -226,6 +245,25 @@ async def _check_badge_condition(
 
     if badge_code == BadgeCode.XP_1000:
         return xp_result is not None and xp_result.get("total_xp", 0) >= 1000
+
+    # --- Rangos ---
+    if badge_code == BadgeCode.RANK_DESPERTADO:
+        return xp_result is not None and xp_result.get("current_level", 0) >= 5
+
+    if badge_code == BadgeCode.RANK_MAESTRO:
+        return xp_result is not None and xp_result.get("current_level", 0) >= 15
+
+    if badge_code == BadgeCode.RANK_SANTO:
+        return xp_result is not None and xp_result.get("current_level", 0) >= 30
+
+    if badge_code == BadgeCode.RANK_SOBERANO:
+        return xp_result is not None and xp_result.get("current_level", 0) >= 50
+
+    if badge_code == BadgeCode.RANK_ESPIRITU:
+        return xp_result is not None and xp_result.get("current_level", 0) >= 75
+
+    if badge_code == BadgeCode.RANK_DIOS:
+        return xp_result is not None and xp_result.get("current_level", 0) >= 100
 
     # --- Dominio-especificos ---
     if badge_code == BadgeCode.STUDY_10H:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import AvatarCard from "@/components/AvatarCard";
 import XPBar from "@/components/XPBar";
@@ -19,7 +19,7 @@ export default function PerfilPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchProfile = useCallback(() => {
     supabase
       .from("user_profile")
       .select(
@@ -39,6 +39,22 @@ export default function PerfilPage() {
           });
       });
   }, []);
+
+  // Fetch on mount
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  // Refetch when user returns to the tab (e.g., after using the bot)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchProfile();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [fetchProfile]);
 
   if (error) {
     return (

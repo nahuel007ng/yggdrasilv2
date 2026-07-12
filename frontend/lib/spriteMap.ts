@@ -110,7 +110,7 @@ export const RANK_NAMES: Record<number, string> = {
   3: 'Maestro',
   4: 'Santo',
   5: 'Soberano',
-  6: 'Ángel',
+  6: 'Espíritu',
   7: 'Dios',
 };
 

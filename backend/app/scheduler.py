@@ -111,6 +111,22 @@ async def job_check_pending_transactions() -> None:
         logger.exception("Error en job_check_pending_transactions")
 
 
+async def job_generate_daily_quests() -> None:
+    """Job: genera misiones diarias para todos los usuarios activos a las 4:00 AM."""
+    logger.info("Ejecutando job: generacion de daily quests")
+    try:
+        from app.db.supabase import get_supabase
+        from app.services.daily_quests import generate_daily_quests
+
+        supabase = get_supabase()
+        profiles = supabase.table("user_profile").select("user_id").execute()
+        for profile in profiles.data or []:
+            await generate_daily_quests(user_id=profile["user_id"])
+        logger.info("Daily quests generadas para %d usuarios", len(profiles.data or []))
+    except Exception:
+        logger.exception("Error en job_generate_daily_quests")
+
+
 async def job_evening_habits() -> None:
     """Job: habitos pendientes vespertino."""
     logger.info("Ejecutando job: habitos pendientes vespertino")
@@ -165,9 +181,18 @@ def start_scheduler() -> AsyncIOScheduler:
         replace_existing=True,
     )
 
+    # 5. Daily quests (4:00 AM)
+    scheduler.add_job(
+        job_generate_daily_quests,
+        trigger=CronTrigger(hour=4, minute=0, timezone=tz),
+        id="generate_daily_quests",
+        name="Generacion daily quests",
+        replace_existing=True,
+    )
+
     scheduler.start()
     logger.info(
-        "Scheduler iniciado con 4 jobs: matutino (%s:00), recordatorios (cada 5min), vespertino (%s:00), tx pendientes (9:05) [TZ: %s]",
+        "Scheduler iniciado con 5 jobs: matutino (%s:00), recordatorios (cada 5min), vespertino (%s:00), tx pendientes (9:05), daily quests (4:00) [TZ: %s]",
         settings.notification_morning_hour,
         settings.notification_evening_hour,
         tz,

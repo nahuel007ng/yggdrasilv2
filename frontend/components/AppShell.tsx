@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AuthProvider } from "@/components/AuthProvider";
 import AuthGuard from "@/components/AuthGuard";
 import Nav from "@/app/Nav";
+import BadgeWatcher from "@/components/BadgeWatcher";
 
 export default function AppShell({
   children,
@@ -111,6 +112,7 @@ export default function AppShell({
 
           {/* Main content — full width now (no sidebar) */}
           <AuthGuard>
+            <BadgeWatcher />
             <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
           </AuthGuard>
         </>

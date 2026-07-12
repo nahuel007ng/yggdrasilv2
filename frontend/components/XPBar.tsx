@@ -6,7 +6,7 @@ export interface XPBarProps {
 }
 
 function xpForLevel(n: number): number {
-  return Math.floor((100 * n * (n + 1)) / 2);
+  return Math.floor((10 * n * (n + 1)) / 2);
 }
 
 export default function XPBar({ totalXp, currentLevel }: XPBarProps) {
