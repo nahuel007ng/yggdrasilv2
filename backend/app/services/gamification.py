@@ -17,6 +17,8 @@ XP_REWARDS: dict[ActionType, int] = {
     ActionType.LOG_WORKOUT: 20,
     ActionType.SET_REMINDER: 5,
     ActionType.QUERY_DATA: 0,
+    ActionType.ADD_SAVINGS: 10,
+    ActionType.WITHDRAW_SAVINGS: 0,
     ActionType.UNKNOWN: 0,
 }
 

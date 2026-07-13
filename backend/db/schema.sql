@@ -217,6 +217,23 @@ ALTER TABLE daily_quests ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own quests" ON daily_quests
     FOR SELECT USING (auth.uid() = user_id);
 
+-- 19. Transacciones de ahorro (depósitos y retiros)
+CREATE TABLE savings_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    amount DOUBLE PRECISION NOT NULL,
+    type TEXT NOT NULL CHECK (type IN ('deposit', 'withdrawal')),
+    description TEXT,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    user_id UUID REFERENCES auth.users(id) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_savings_user_date ON savings_transactions (user_id, date);
+
+ALTER TABLE savings_transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own savings" ON savings_transactions
+    FOR ALL USING (auth.uid() = user_id);
+
 -- =============================================================
 -- Trigger: updated_at automático
 -- =============================================================

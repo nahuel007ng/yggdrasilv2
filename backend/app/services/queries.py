@@ -25,6 +25,8 @@ async def query_data(payload: ParsedPayload) -> dict:
         return await _query_workouts(supabase, date_from, date_to)
     elif target == "reminders":
         return await _query_reminders()
+    elif target == "savings":
+        return await _query_savings(supabase)
     else:
         return {"success": False, "error": f"No se que consultar: '{payload.query_target}'"}
 
@@ -183,5 +185,38 @@ async def _query_reminders() -> dict:
 
     summary = f"Recordatorios pendientes ({result['count']}):\n"
     summary += "\n".join(result["reminders"])
+
+    return {"success": True, "summary": summary}
+
+
+async def _query_savings(supabase) -> dict:
+    """Consulta el total de ahorros y movimientos recientes."""
+    result = (
+        supabase.table("savings_transactions")
+        .select("amount, type, description, date")
+        .order("date", desc=True)
+        .execute()
+    )
+
+    rows = result.data or []
+    deposits = sum(r["amount"] for r in rows if r["type"] == "deposit")
+    withdrawals = sum(r["amount"] for r in rows if r["type"] == "withdrawal")
+    total = deposits - withdrawals
+
+    if not rows:
+        return {"success": True, "summary": "No tenés movimientos de ahorro registrados."}
+
+    lines = []
+    for r in rows[:10]:
+        sign = "+" if r["type"] == "deposit" else "-"
+        desc = f" — {r['description']}" if r.get("description") else ""
+        lines.append(f"  - {sign}${r['amount']:,.0f}{desc} [{r['date']}]")
+
+    summary = f"💰 Ahorros totales: ${total:,.0f}\n"
+    summary += f"Total depositado: ${deposits:,.0f} | Retirado: ${withdrawals:,.0f}\n\n"
+    summary += "Últimos movimientos:\n"
+    summary += "\n".join(lines)
+    if len(rows) > 10:
+        summary += f"\n  ... y {len(rows) - 10} más"
 
     return {"success": True, "summary": summary}

@@ -1,5 +1,6 @@
 from app.models.schemas import ActionType
 from app.services.expenses import add_expense, add_expected_transaction, confirm_transaction
+from app.services.savings import add_savings, withdraw_savings
 from app.services.habits import toggle_habit
 from app.services.tasks import add_task
 from app.services.study import log_study
@@ -283,6 +284,34 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 return await _build_response(result["summary"])
             return await _build_response(f"Error al consultar datos: {result.get('error', 'desconocido')}")
 
+        elif parsed.action == ActionType.ADD_SAVINGS:
+            result = await add_savings(parsed.payload)
+            if result["success"]:
+                amount_str = f"${result['amount']:,.0f}" if result["amount"] else "monto no especificado"
+                msg = f"💰 Ahorro registrado: {amount_str}"
+                if result.get("description"):
+                    msg += f" — {result['description']}"
+                xp_result = await award_xp(parsed.action)
+                msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(
+                    action_type=parsed.action,
+                    xp_result=xp_result,
+                )
+                msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al registrar ahorro: {result.get('error', 'desconocido')}")
+
+        elif parsed.action == ActionType.WITHDRAW_SAVINGS:
+            result = await withdraw_savings(parsed.payload)
+            if result["success"]:
+                amount_str = f"${result['amount']:,.0f}" if result["amount"] else "monto no especificado"
+                msg = f"💸 Retiro de ahorros: {amount_str}"
+                if result.get("description"):
+                    msg += f" — {result['description']}"
+                return await _build_response(msg)
+            return await _build_response(f"Error al retirar de ahorros: {result.get('error', 'desconocido')}")
+
         elif parsed.action == ActionType.UNKNOWN:
             return await _build_response(
                 "No entendí qué querés hacer. Probá con algo como:\n"
@@ -292,6 +321,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 "- 'estudié 2 horas de análisis'\n"
                 "- 'hice 3x10 flexiones'\n"
                 "- 'recordame pagar la luz el 21'\n"
+                "- 'ahorré 5000'\n"
                 "- 'cuánto gasté este mes'"
             )
 

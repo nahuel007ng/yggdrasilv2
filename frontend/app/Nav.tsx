@@ -11,7 +11,6 @@ const links = [
   { href: "/finanzas", label: "Finanzas", spriteKey: "nav-finanzas" },
   { href: "/tareas", label: "Tareas", spriteKey: "nav-tareas" },
   { href: "/estudios", label: "Estudios", spriteKey: "nav-estudios" },
-  { href: "/entrenamientos", label: "Entreno", spriteKey: "nav-entrenamientos" },
   { href: "/calendario", label: "Calendario", spriteKey: "nav-calendario" },
   { href: "/perfil", label: "Perfil", spriteKey: "nav-perfil" },
 ];

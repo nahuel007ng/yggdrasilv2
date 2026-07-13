@@ -88,9 +88,19 @@ ACCIONES VÁLIDAS:
    Ejemplos: "borrá el recordatorio de la factura", "cancelá el recordatorio del turno", "eliminá el recordatorio de pagar la luz"
 
 10. QUERY_DATA — El usuario quiere consultar datos registrados.
-   Campos requeridos: query_target ("expenses" | "habits" | "tasks" | "study" | "workouts" | "reminders")
+   Campos requeridos: query_target ("expenses" | "habits" | "tasks" | "study" | "workouts" | "reminders" | "savings")
    Campos opcionales: date_from, date_to (rango de fechas)
-   Ejemplos: "cuánto gasté hoy", "mis hábitos de la semana", "tareas pendientes", "cuánto estudié este mes", "qué recordatorios tengo", "mis recordatorios"
+   Ejemplos: "cuánto gasté hoy", "mis hábitos de la semana", "tareas pendientes", "cuánto estudié este mes", "qué recordatorios tengo", "mis recordatorios", "cuánto tengo ahorrado", "mis ahorros"
+
+11. ADD_SAVINGS — El usuario registra un depósito en sus ahorros.
+   Campos requeridos: amount (número)
+   Campos opcionales: description, date (default: hoy)
+   Ejemplos: "ahorré 2000", "sumar 2000 a ahorros", "guardar 5000", "metí 10000 en ahorros"
+
+12. WITHDRAW_SAVINGS — El usuario retira dinero de sus ahorros.
+   Campos requeridos: amount (número)
+   Campos opcionales: description, date (default: hoy)
+   Ejemplos: "gasté 1000 de mis ahorros", "sacar 500 de ahorros", "retiré 3000 de ahorros", "usé 2000 de mis ahorros"
 
 CATEGORÍAS DE GASTOS (usar la más cercana):
 - Comida
@@ -128,10 +138,13 @@ REGLAS:
 - "qué recordatorios tengo", "mis recordatorios", "recordatorios pendientes" → QUERY_DATA con query_target "reminders".
 - "cuánto", "cuántas", "mis hábitos", "tareas pendientes", "resumen" implican QUERY_DATA.
 - Para QUERY_DATA: "hoy" = date_from y date_to iguales a hoy. "esta semana" = lunes a hoy. "este mes" = día 1 del mes actual a hoy.
+- "ahorré", "guardar", "sumar a ahorros", "meter en ahorros" → ADD_SAVINGS.
+- "gasté de mis ahorros", "sacar de ahorros", "retirar de ahorros", "usé de mis ahorros" → WITHDRAW_SAVINGS. DIFERENCIA con ADD_EXPENSE: si menciona explícitamente "ahorros" como fuente, es WITHDRAW_SAVINGS.
+- "cuánto tengo ahorrado", "mis ahorros", "total de ahorros" → QUERY_DATA con query_target "savings".
 
 FORMATO DE RESPUESTA:
 {{
-  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | DELETE_REMINDER | QUERY_DATA | UNKNOWN",
+  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | DELETE_REMINDER | QUERY_DATA | ADD_SAVINGS | WITHDRAW_SAVINGS | UNKNOWN",
   "payload": {{
     "amount": null,
     "description": null,

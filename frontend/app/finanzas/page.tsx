@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import MonthlySummary from "@/components/MonthlySummary";
+import SavingsCard from "@/components/SavingsCard";
 import ExpenseChart from "@/components/ExpenseChart";
 import TransactionList from "@/components/TransactionList";
 
@@ -73,6 +74,7 @@ export default function FinanzasPage() {
       </div>
 
       <MonthlySummary month={month} year={year} />
+      <SavingsCard month={month} year={year} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ExpenseChart month={month} year={year} />
