@@ -78,14 +78,19 @@ ACCIONES VÁLIDAS:
 
 8. SET_REMINDER — El usuario quiere que le recuerden algo en una fecha.
    Campos requeridos: description (qué recordar), date (cuándo)
-   Campos opcionales: reminder_time (hora, formato HH:MM), is_recurring, recurrence_rule
-   Ejemplos: "recordame pagar la luz el 21", "el viernes tengo turno médico a las 10", "cada mes el 21 pagar factura"
+   Campos opcionales: reminder_time (hora, formato HH:MM), is_recurring, recurrence_rule, remind_before_minutes
+   Para anticipación: "recordame 1 hora antes" → remind_before_minutes: 60. "avisame un día antes" → remind_before_minutes: 1440
+   Ejemplos: "recordame pagar la luz el 21", "el viernes tengo turno médico a las 10, avisame 1 hora antes", "cada mes el 21 pagar factura"
    Para recurrencia mensual: is_recurring: true, recurrence_rule: "monthly_21"
 
-9. QUERY_DATA — El usuario quiere consultar datos registrados.
-   Campos requeridos: query_target ("expenses" | "habits" | "tasks" | "study" | "workouts")
+9. DELETE_REMINDER — El usuario quiere borrar/eliminar/cancelar un recordatorio.
+   Campos requeridos: description (texto parcial para identificar el recordatorio)
+   Ejemplos: "borrá el recordatorio de la factura", "cancelá el recordatorio del turno", "eliminá el recordatorio de pagar la luz"
+
+10. QUERY_DATA — El usuario quiere consultar datos registrados.
+   Campos requeridos: query_target ("expenses" | "habits" | "tasks" | "study" | "workouts" | "reminders")
    Campos opcionales: date_from, date_to (rango de fechas)
-   Ejemplos: "cuánto gasté hoy", "mis hábitos de la semana", "tareas pendientes", "cuánto estudié este mes"
+   Ejemplos: "cuánto gasté hoy", "mis hábitos de la semana", "tareas pendientes", "cuánto estudié este mes", "qué recordatorios tengo", "mis recordatorios"
 
 CATEGORÍAS DE GASTOS (usar la más cercana):
 - Comida
@@ -119,12 +124,14 @@ REGLAS:
 - DIFERENCIA TOGGLE_HABIT vs LOG_WORKOUT: si el usuario dice algo genérico como "hice ejercicio", "entrené", "fui al gym" SIN detallar ejercicios, es TOGGLE_HABIT. Si menciona ejercicios específicos con sets/reps/peso (ej. "hice 3x10 flexiones"), es LOG_WORKOUT.
 - Si dice "estudié X" donde X es una materia o alias de materia, es LOG_STUDY. Mapeá el alias al nombre completo de la materia. Si dice "tengo que estudiar X", es ADD_TASK.
 - "recordame" o "acordate" siempre es SET_REMINDER.
+- "borrá", "eliminá", "cancelá" + "recordatorio/reminder" → DELETE_REMINDER.
+- "qué recordatorios tengo", "mis recordatorios", "recordatorios pendientes" → QUERY_DATA con query_target "reminders".
 - "cuánto", "cuántas", "mis hábitos", "tareas pendientes", "resumen" implican QUERY_DATA.
 - Para QUERY_DATA: "hoy" = date_from y date_to iguales a hoy. "esta semana" = lunes a hoy. "este mes" = día 1 del mes actual a hoy.
 
 FORMATO DE RESPUESTA:
 {{
-  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | QUERY_DATA | UNKNOWN",
+  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | DELETE_REMINDER | QUERY_DATA | UNKNOWN",
   "payload": {{
     "amount": null,
     "description": null,
@@ -141,6 +148,7 @@ FORMATO DE RESPUESTA:
     "reminder_time": null,
     "is_recurring": false,
     "recurrence_rule": null,
+    "remind_before_minutes": null,
     "date_from": null,
     "date_to": null,
     "transaction_id": null,

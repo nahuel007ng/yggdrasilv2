@@ -13,6 +13,7 @@ class ActionType(str, Enum):
     LOG_STUDY = "LOG_STUDY"
     LOG_WORKOUT = "LOG_WORKOUT"
     SET_REMINDER = "SET_REMINDER"
+    DELETE_REMINDER = "DELETE_REMINDER"
     QUERY_DATA = "QUERY_DATA"
     UNKNOWN = "UNKNOWN"
 
@@ -44,10 +45,11 @@ class ParsedPayload(BaseModel):
     # LOG_WORKOUT
     exercises: Optional[list[ExercisePayload]] = None
 
-    # SET_REMINDER
+    # SET_REMINDER / DELETE_REMINDER
     reminder_time: Optional[str] = None
     is_recurring: Optional[bool] = None
     recurrence_rule: Optional[str] = None
+    remind_before_minutes: Optional[int] = None
 
     # QUERY_DATA
     date_from: Optional[Date] = None

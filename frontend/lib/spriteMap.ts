@@ -49,6 +49,7 @@ export const spriteMap: Record<string, SpriteEntry> = {
   'nav-estudios': { src: '/sprites/nav/nav-estudios.png', fallback: '📚' },
   'nav-entrenamientos': { src: '/sprites/nav/nav-entrenamientos.png', fallback: '💪' },
   'nav-perfil': { src: '/sprites/nav/nav-perfil.png', fallback: '🛡️' },
+  'nav-calendario': { src: '/sprites/nav/nav-calendario.png', fallback: '📅' },
   'nav-logout': { src: '/sprites/nav/nav-logout.png', fallback: '🚪' },
 
   'streak-fire': { src: '/sprites/streaks/streak-fire.png', fallback: '🔥' },

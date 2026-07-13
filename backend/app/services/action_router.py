@@ -4,7 +4,7 @@ from app.services.habits import toggle_habit
 from app.services.tasks import add_task
 from app.services.study import log_study
 from app.services.workouts import log_workout
-from app.services.reminders import set_reminder
+from app.services.reminders import set_reminder, delete_reminder
 from app.services.queries import query_data
 from app.services.gamification import award_xp, get_user_stats
 from app.services.badges import check_and_award_badges
@@ -248,7 +248,10 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             if result["success"]:
                 time_str = f" a las {result['time']}" if result.get("time") else ""
                 recurring_str = " (recurrente)" if result.get("recurring") else ""
-                msg = f"Recordatorio creado: {result['description']} para el {result['reminder_date']}{time_str}{recurring_str}."
+                anticipation_str = ""
+                if result.get("remind_before_minutes", 0) > 0:
+                    anticipation_str = f" (anticipación: {result['remind_before_minutes']} min)"
+                msg = f"Recordatorio creado: {result['description']} para el {result['reminder_date']}{time_str}{recurring_str}{anticipation_str}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -259,6 +262,20 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
             return await _build_response(f"Error al crear recordatorio: {result.get('error', 'desconocido')}")
+
+        elif parsed.action == ActionType.DELETE_REMINDER:
+            result = await delete_reminder(parsed.payload)
+            if result["success"]:
+                recurring_note = " (se canceló la recurrencia)" if result.get("was_recurring") else ""
+                msg = f"Recordatorio eliminado: {result['description']} ({result['reminder_date']}){recurring_note}."
+                return await _build_response(msg)
+            elif result.get("error") == "ambiguous":
+                matches_str = "\n".join(result["matches"])
+                msg = f"Encontré varios recordatorios que coinciden con \"{result['description']}\":\n{matches_str}\n\nSé más específico para que pueda eliminar el correcto."
+                return await _build_response(msg)
+            else:
+                msg = f"No encontré ningún recordatorio activo que coincida con \"{result['description']}\"."
+                return await _build_response(msg)
 
         elif parsed.action == ActionType.QUERY_DATA:
             result = await query_data(parsed.payload)

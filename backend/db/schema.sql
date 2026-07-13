@@ -1,6 +1,6 @@
 -- =============================================================
 -- Yggdrasil v2 — Schema SQL para Supabase (PostgreSQL 15+)
--- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth, correcciones-v1, academico-nlu-chat
+-- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth, correcciones-v1, academico-nlu-chat, calendario-recordatorios
 -- Nota: todas las tablas tienen columna user_id UUID NOT NULL REFERENCES auth.users(id)
 --       agregada por migration-auth.sql. user_profile tiene telegram_chat_id BIGINT.
 -- =============================================================
@@ -163,6 +163,7 @@ CREATE TABLE reminders (
     reminder_time TIME,
     is_recurring BOOLEAN DEFAULT false,
     recurrence_rule TEXT,
+    remind_before_minutes INTEGER DEFAULT 0,  -- anticipación en minutos (0 = sin anticipación)
     is_completed BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT now()
 );

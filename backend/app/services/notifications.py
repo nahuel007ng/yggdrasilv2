@@ -102,7 +102,7 @@ async def get_due_reminders() -> list[str]:
     # Recordatorios de hoy con hora <= ahora, no completados
     result = (
         supabase.table("reminders")
-        .select("id, description, reminder_time, is_recurring, recurrence_rule")
+        .select("id, description, reminder_time, is_recurring, recurrence_rule, remind_before_minutes")
         .eq("reminder_date", today.isoformat())
         .eq("is_completed", False)
         .execute()
@@ -113,16 +113,29 @@ async def get_due_reminders() -> list[str]:
         return messages
 
     for reminder in result.data:
-        # Si tiene hora, verificar que ya paso
+        remind_before = reminder.get("remind_before_minutes") or 0
+
+        # Si tiene hora, verificar que ya pasó (con anticipación)
         if reminder.get("reminder_time"):
-            reminder_time = time.fromisoformat(reminder["reminder_time"])
-            if reminder_time > current_time:
+            reminder_time_val = time.fromisoformat(reminder["reminder_time"])
+            # Calcular hora de disparo con anticipación
+            reminder_dt = datetime.combine(today, reminder_time_val)
+            trigger_dt = reminder_dt - timedelta(minutes=remind_before)
+            trigger_time = trigger_dt.time()
+
+            if trigger_time > current_time:
                 continue
+
+            # Si se dispara por anticipación (antes de la hora real), agregar nota
+            if remind_before > 0 and current_time < reminder_time_val:
+                messages.append(f"Recordatorio (en {remind_before} min): {reminder['description']}")
+            else:
+                messages.append(f"Recordatorio: {reminder['description']}")
+        else:
+            messages.append(f"Recordatorio: {reminder['description']}")
 
         # Marcar como completado
         supabase.table("reminders").update({"is_completed": True}).eq("id", reminder["id"]).execute()
-
-        messages.append(f"Recordatorio: {reminder['description']}")
 
         # Reagendar si es recurrente
         if reminder.get("is_recurring") and reminder.get("recurrence_rule"):
@@ -134,6 +147,7 @@ async def get_due_reminders() -> list[str]:
                     "reminder_time": reminder.get("reminder_time"),
                     "is_recurring": True,
                     "recurrence_rule": reminder["recurrence_rule"],
+                    "remind_before_minutes": remind_before,
                     "is_completed": False,
                     "user_id": get_user_id(),
                 }).execute()

@@ -2,6 +2,7 @@ from datetime import date
 
 from app.db.supabase import get_supabase
 from app.models.schemas import ParsedPayload
+from app.services.reminders import list_reminders
 
 
 async def query_data(payload: ParsedPayload) -> dict:
@@ -22,6 +23,8 @@ async def query_data(payload: ParsedPayload) -> dict:
         return await _query_study(supabase, date_from, date_to)
     elif target == "workouts":
         return await _query_workouts(supabase, date_from, date_to)
+    elif target == "reminders":
+        return await _query_reminders()
     else:
         return {"success": False, "error": f"No se que consultar: '{payload.query_target}'"}
 
@@ -167,5 +170,18 @@ async def _query_workouts(supabase, date_from: str, date_to: str) -> dict:
     summary = f"Entrenamientos ({date_from} a {date_to}):\n"
     summary += "\n".join(lines[:20])
     summary += f"\n\nTotal: {len(result.data)} sesiones, {total_minutes} min"
+
+    return {"success": True, "summary": summary}
+
+
+async def _query_reminders() -> dict:
+    """Consulta recordatorios activos."""
+    result = await list_reminders()
+
+    if result["count"] == 0:
+        return {"success": True, "summary": "No tenés recordatorios pendientes."}
+
+    summary = f"Recordatorios pendientes ({result['count']}):\n"
+    summary += "\n".join(result["reminders"])
 
     return {"success": True, "summary": summary}
