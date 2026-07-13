@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     notification_evening_hour: int = 20
     notification_timezone: str = "America/Argentina/Buenos_Aires"
 
+    # WhatsApp (neonize)
+    whatsapp_enabled: bool = False
+    whatsapp_store_path: str = "./whatsapp_session"
+
     # App
     debug: bool = False
 

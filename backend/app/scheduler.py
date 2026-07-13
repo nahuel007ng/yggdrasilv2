@@ -4,9 +4,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
-import telegram
-
 from app.config import settings
+from app.messaging.registry import registry
 from app.services.notifications import (
     build_evening_habits,
     build_morning_summary,
@@ -16,37 +15,49 @@ from app.services.notifications import (
 logger = logging.getLogger(__name__)
 
 
-async def _get_chat_id() -> int | None:
-    """Obtiene el chat_id del usuario desde config o user_profile."""
-    if settings.telegram_chat_id:
-        return settings.telegram_chat_id
+async def _get_recipient_id(channel: str | None = None) -> tuple[str | None, str | None]:
+    """Obtiene el ID del destinatario y el canal desde user_profile.
 
+    Returns:
+        Tupla (recipient_id, channel). Si channel es None, usa preferred_channel.
+    """
     from app.db.supabase import get_supabase
+
+    # Fallback rapido desde config (legacy)
+    if channel is None and settings.telegram_chat_id:
+        return str(settings.telegram_chat_id), "telegram"
 
     supabase = get_supabase()
     result = (
         supabase.table("user_profile")
-        .select("telegram_chat_id")
-        .not_.is_("telegram_chat_id", "null")
+        .select("telegram_chat_id, whatsapp_jid, preferred_channel")
         .limit(1)
         .execute()
     )
-    if result.data and result.data[0].get("telegram_chat_id"):
-        return int(result.data[0]["telegram_chat_id"])
-    return None
+
+    if not result.data:
+        return None, None
+
+    profile = result.data[0]
+    ch = channel or profile.get("preferred_channel", "telegram")
+
+    if ch == "whatsapp" and profile.get("whatsapp_jid"):
+        return profile["whatsapp_jid"], "whatsapp"
+    elif profile.get("telegram_chat_id"):
+        return str(profile["telegram_chat_id"]), "telegram"
+
+    return None, None
 
 
 async def _send_message(text: str) -> None:
-    """Envia un mensaje via Telegram Bot API."""
-    chat_id = await _get_chat_id()
-    if not chat_id:
-        logger.warning("No hay chat_id configurado — no se puede enviar notificacion")
+    """Envia un mensaje al usuario via el canal preferido."""
+    recipient_id, channel = await _get_recipient_id()
+    if not recipient_id:
+        logger.warning("No hay recipient_id disponible para enviar notificacion")
         return
 
-    bot = telegram.Bot(token=settings.telegram_bot_token)
-    async with bot:
-        await bot.send_message(chat_id=chat_id, text=text)
-    logger.info("Notificacion enviada a chat_id=%s", chat_id)
+    await registry.send_message(recipient_id, text, channel=channel)
+    logger.info("Notificacion enviada a %s via %s", recipient_id, channel)
 
 
 async def job_morning_summary() -> None:
@@ -141,7 +152,7 @@ async def job_evening_habits() -> None:
 
 
 def start_scheduler() -> AsyncIOScheduler:
-    """Configura e inicia el scheduler con los 4 jobs de notificaciones."""
+    """Configura e inicia el scheduler con los 5 jobs de notificaciones."""
     scheduler = AsyncIOScheduler()
     tz = settings.notification_timezone
 

@@ -5,7 +5,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.chat import router as chat_router
-from app.bot.setup import create_bot_application
+from app.config import settings
+from app.messaging.registry import registry
+from app.messaging.telegram_provider import TelegramProvider
+from app.bot.handlers import parse_and_execute
 from app.scheduler import start_scheduler
 
 logging.basicConfig(
@@ -14,17 +17,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-bot_app = None
+
+async def _message_handler(sender_id: str, text: str, channel: str) -> str:
+    """Callback para providers: procesa mensaje y devuelve respuesta."""
+    return await parse_and_execute(text)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global bot_app
-    bot_app = create_bot_application()
-    await bot_app.initialize()
-    await bot_app.start()
-    await bot_app.updater.start_polling()
-    logger.info("Bot de Telegram iniciado en modo polling")
+    # Registrar Telegram provider
+    telegram_provider = TelegramProvider(
+        token=settings.telegram_bot_token,
+        message_handler_callback=_message_handler,
+    )
+    registry.register(telegram_provider)
+
+    # Registrar WhatsApp provider si esta habilitado
+    if settings.whatsapp_enabled:
+        from app.messaging.whatsapp_provider import WhatsAppProvider
+
+        whatsapp_provider = WhatsAppProvider(
+            store_path=settings.whatsapp_store_path,
+            message_handler_callback=_message_handler,
+        )
+        registry.register(whatsapp_provider)
+
+    # Iniciar todos los providers
+    await registry.start_all()
 
     # Iniciar scheduler de notificaciones
     scheduler = start_scheduler()
@@ -33,10 +52,8 @@ async def lifespan(app: FastAPI):
 
     scheduler.shutdown()
     logger.info("Scheduler de notificaciones detenido")
-    await bot_app.updater.stop()
-    await bot_app.stop()
-    await bot_app.shutdown()
-    logger.info("Bot de Telegram detenido")
+    await registry.stop_all()
+    logger.info("Providers de mensajeria detenidos")
 
 
 app = FastAPI(title="Yggdrasil v2", lifespan=lifespan)
