@@ -4,38 +4,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PixelIcon from "@/components/PixelIcon";
 import { badgeToSpriteKey } from "@/lib/spriteMap";
-
-const BADGE_INFO: Record<string, { name: string }> = {
-  first_expense: { name: "Primer gasto" },
-  first_habit: { name: "Primer habito" },
-  first_task: { name: "Primera tarea" },
-  first_study: { name: "Primera sesion" },
-  first_workout: { name: "Primer entreno" },
-  streak_7: { name: "Racha de 7" },
-  streak_30: { name: "Racha de 30" },
-  perfect_week: { name: "Semana perfecta" },
-  xp_1000: { name: "1000 XP" },
-  rank_despertado: { name: "Despertado" },
-  rank_maestro: { name: "Maestro" },
-  rank_santo: { name: "Santo" },
-  rank_soberano: { name: "Soberano" },
-  rank_espiritu: { name: "Espíritu" },
-  rank_dios: { name: "Dios" },
-  study_10h: { name: "10h de estudio" },
-  workout_30: { name: "30 entrenos" },
-  all_rounder: { name: "Todoterreno" },
-};
-
-const ALL_CODES = Object.keys(BADGE_INFO);
+import { ACHIEVEMENTS, ACHIEVEMENTS_BY_CODE } from "@/lib/achievements";
+import SkillTreeModal from "@/components/SkillTreeModal";
 
 interface BadgeRow {
   code: string;
   unlocked_at: string;
 }
 
-export default function BadgesGrid() {
+interface BadgesGridProps {
+  unlockedTitles?: string[];
+}
+
+export default function BadgesGrid({ unlockedTitles }: BadgesGridProps) {
   const [unlocked, setUnlocked] = useState<Set<string> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [treeOpen, setTreeOpen] = useState(false);
 
   useEffect(() => {
     supabase
@@ -47,40 +31,49 @@ export default function BadgesGrid() {
       });
   }, []);
 
-  const total = ALL_CODES.length;
-  const unlockedCount = unlocked ? unlocked.size : 0;
+  const total = ACHIEVEMENTS.length;
 
   return (
     <div className="pixel-card h-full">
-      <h3 className="pixel-card-title">
-        Logros ({unlockedCount}/{total})
-      </h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="pixel-card-title mb-0 border-0 pb-0">
+          Logros ({unlocked ? unlocked.size : 0}/{total})
+        </h3>
+        <button
+          type="button"
+          className="pixel-btn"
+          onClick={() => setTreeOpen(true)}
+        >
+          🌳 Árbol
+        </button>
+      </div>
       <div className="flex flex-col gap-2 py-2">
         {error && <p className="text-hp">Error: {error}</p>}
         {!error && unlocked === null && (
           <p className="text-muted">Cargando...</p>
         )}
-        {!error && unlocked !== null && (
+        {!error && unlocked !== null && unlocked.size === 0 && (
+          <p className="text-muted text-xs">
+            Todavía no desbloqueaste logros. ¡Abrí el árbol para ver qué te espera!
+          </p>
+        )}
+        {!error && unlocked !== null && unlocked.size > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-            {ALL_CODES.map((code) => {
-              const info = BADGE_INFO[code];
-              const isUnlocked = unlocked.has(code);
+            {Array.from(unlocked).map((code) => {
+              const def = ACHIEVEMENTS_BY_CODE[code];
               return (
                 <div
                   key={code}
-                  className={`flex flex-col items-center gap-2 p-3 pixel-card ${
-                    isUnlocked ? "" : "opacity-30"
-                  }`}
-                  title={isUnlocked ? info.name : "Bloqueado"}
+                  className="flex flex-col items-center gap-2 p-3 pixel-card"
+                  title={def ? def.name : code}
                 >
                   <PixelIcon
                     name={badgeToSpriteKey(code)}
                     size={64}
-                    alt={info.name}
-                    className={isUnlocked ? "" : "grayscale"}
+                    alt={def ? def.name : code}
                   />
                   <span className="text-center text-[10px] text-[--color-text-muted]">
-                    {isUnlocked ? info.name : "???"}
+                    {def ? def.name : code}
                   </span>
                 </div>
               );
@@ -88,6 +81,13 @@ export default function BadgesGrid() {
           </div>
         )}
       </div>
+      {treeOpen && (
+        <SkillTreeModal
+          onClose={() => setTreeOpen(false)}
+          unlockedBadges={unlocked ?? new Set()}
+          unlockedTitles={new Set(unlockedTitles ?? [])}
+        />
+      )}
     </div>
   );
 }

@@ -55,7 +55,7 @@ ACCIONES VÁLIDAS:
 4. TOGGLE_HABIT — El usuario marca que completó un hábito.
    Campos requeridos: habit_name (nombre del hábito)
    Campos opcionales: date (default: hoy)
-   Ejemplos: "hice ejercicio", "tomé agua", "leí 30 minutos", "medité"
+   Ejemplos: "hice ejercicio", "tomé agua", "medité 10 minutos", "medité"
 
 5. ADD_TASK — El usuario quiere agregar una tarea pendiente.
    Campos requeridos: task_title (qué tiene que hacer)
@@ -98,9 +98,20 @@ ACCIONES VÁLIDAS:
    Ejemplos: "ahorré 2000", "sumar 2000 a ahorros", "guardar 5000", "metí 10000 en ahorros"
 
 12. WITHDRAW_SAVINGS — El usuario retira dinero de sus ahorros.
-   Campos requeridos: amount (número)
-   Campos opcionales: description, date (default: hoy)
-   Ejemplos: "gasté 1000 de mis ahorros", "sacar 500 de ahorros", "retiré 3000 de ahorros", "usé 2000 de mis ahorros"
+    Campos requeridos: amount (número)
+    Campos opcionales: description, date (default: hoy)
+    Ejemplos: "gasté 1000 de mis ahorros", "sacar 500 de ahorros", "retiré 3000 de ahorros", "usé 2000 de mis ahorros"
+
+13. LOG_READING — El usuario registra una sesión de lectura (NO es estudio: lectura recreativa/libros).
+    Campos requeridos: duration_minutes (duración en minutos)
+    Campos opcionales: book_title (título del libro), notes, date (default: hoy)
+    Ejemplos: "leí 45 minutos", "leí una hora de Hamlet", "hoy leí 30 min del Quijote"
+
+14. FINISH_BOOK — El usuario terminó de leer un libro.
+    Campos requeridos: title (título del libro)
+    Campos opcionales: category ("clasico" | "filosofia" | "ciencia" | "otro"), author
+    Ejemplos: "terminé de leer Hamlet, es un clásico", "terminé El mundo de Sofía, filosofía",
+    "terminé de leer Cosmos de Carl Sagan, divulgación científica"
 
 CATEGORÍAS DE GASTOS (usar la más cercana):
 - Comida
@@ -141,10 +152,12 @@ REGLAS:
 - "ahorré", "guardar", "sumar a ahorros", "meter en ahorros" → ADD_SAVINGS.
 - "gasté de mis ahorros", "sacar de ahorros", "retirar de ahorros", "usé de mis ahorros" → WITHDRAW_SAVINGS. DIFERENCIA con ADD_EXPENSE: si menciona explícitamente "ahorros" como fuente, es WITHDRAW_SAVINGS.
 - "cuánto tengo ahorrado", "mis ahorros", "total de ahorros" → QUERY_DATA con query_target "savings".
+- "leí X minutos", "leí una hora de LIBRO", "hoy leí..." → LOG_READING. NUNCA mapear a TOGGLE_HABIT ni LOG_STUDY.
+- "terminé de leer LIBRO" o "terminé LIBRO" → FINISH_BOOK. Inferí la categoría si el usuario la menciona ("clásico", "filosofía", "ciencia"); default "otro".
 
 FORMATO DE RESPUESTA:
 {{
-  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | DELETE_REMINDER | QUERY_DATA | ADD_SAVINGS | WITHDRAW_SAVINGS | UNKNOWN",
+  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | DELETE_REMINDER | QUERY_DATA | ADD_SAVINGS | WITHDRAW_SAVINGS | LOG_READING | FINISH_BOOK | UNKNOWN",
   "payload": {{
     "amount": null,
     "description": null,
@@ -167,7 +180,10 @@ FORMATO DE RESPUESTA:
     "transaction_id": null,
     "confirmed": null,
     "actual_amount": null,
-    "transaction_type": null
+    "transaction_type": null,
+    "book_title": null,
+    "title": null,
+    "author": null
   }},
   "confidence": 0.95
 }}"""

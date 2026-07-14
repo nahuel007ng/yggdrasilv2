@@ -17,6 +17,8 @@ class ActionType(str, Enum):
     QUERY_DATA = "QUERY_DATA"
     ADD_SAVINGS = "ADD_SAVINGS"
     WITHDRAW_SAVINGS = "WITHDRAW_SAVINGS"
+    LOG_READING = "LOG_READING"
+    FINISH_BOOK = "FINISH_BOOK"
     UNKNOWN = "UNKNOWN"
 
 
@@ -62,6 +64,11 @@ class ParsedPayload(BaseModel):
     confirmed: Optional[bool] = None
     actual_amount: Optional[float] = None
     transaction_type: Optional[str] = None
+
+    # LOG_READING / FINISH_BOOK
+    book_title: Optional[str] = None
+    title: Optional[str] = None
+    author: Optional[str] = None
 
 
 class ParsedAction(BaseModel):

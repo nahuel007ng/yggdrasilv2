@@ -1,6 +1,6 @@
 -- =============================================================
 -- Yggdrasil v2 — Schema SQL para Supabase (PostgreSQL 15+)
--- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth, correcciones-v1, academico-nlu-chat, calendario-recordatorios
+-- Briefs: bot-telegram-mvp, acciones-secundarias, notificaciones-auth, correcciones-v1, academico-nlu-chat, calendario-recordatorios, gamificacion-v2-2
 -- Nota: todas las tablas tienen columna user_id UUID NOT NULL REFERENCES auth.users(id)
 --       agregada por migration-auth.sql. user_profile tiene telegram_chat_id BIGINT.
 -- =============================================================
@@ -265,3 +265,61 @@ CREATE TRIGGER set_updated_at_subjects
 CREATE TRIGGER set_updated_at_user_profile
     BEFORE UPDATE ON user_profile
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- =====================================================
+-- Gamificación V2.2 (2026-07): lectura + títulos
+-- =====================================================
+
+-- 20. Libros (dominio de lectura)
+CREATE TABLE books (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) NOT NULL,
+    title TEXT NOT NULL,
+    author TEXT,
+    category TEXT NOT NULL DEFAULT 'otro'
+        CHECK (category IN ('clasico', 'filosofia', 'ciencia', 'otro')),
+    status TEXT NOT NULL DEFAULT 'leyendo'
+        CHECK (status IN ('leyendo', 'terminado', 'abandonado')),
+    finished_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_books_user_status ON books (user_id, status);
+
+ALTER TABLE books ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own books" ON books
+    FOR ALL USING (auth.uid() = user_id);
+
+-- 21. Sesiones de lectura
+CREATE TABLE reading_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) NOT NULL,
+    book_id UUID REFERENCES books(id),
+    duration_minutes INTEGER NOT NULL,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_reading_sessions_user_date ON reading_sessions (user_id, date);
+
+ALTER TABLE reading_sessions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own reading" ON reading_sessions
+    FOR ALL USING (auth.uid() = user_id);
+
+-- 22. Títulos desbloqueados
+CREATE TABLE user_titles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) NOT NULL,
+    code TEXT NOT NULL,
+    unlocked_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE UNIQUE INDEX idx_user_titles_user_code ON user_titles (user_id, code);
+
+ALTER TABLE user_titles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own titles" ON user_titles
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- 23. Columna active_title en user_profile (agregada por migración)
+-- ALTER TABLE user_profile ADD COLUMN IF NOT EXISTS active_title TEXT;

@@ -304,3 +304,57 @@ h3 { font-size: 12px; }
   from { transform: translateX(-100%); }
   to { transform: translateX(0); }
 }
+
+/* ── Rarezas de títulos (Gamificación V2.2) ── */
+.title-comun { color: var(--color-text); }
+.title-epico { color: #5b7db1; }
+.title-mitico { color: var(--color-purple); }
+.title-legendario {
+  background: linear-gradient(90deg, #f7d51d, #e8845a, #8b5cf6, #4a9e8e, #f7d51d);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: legendary-shift 4s linear infinite;
+}
+@keyframes legendary-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* ── Árbol de skills (V2.2) ── */
+.skill-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  min-width: 72px;
+  position: relative;
+}
+.skill-node--locked {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+.skill-node--unlocked {
+  border: 2px solid var(--color-gold);
+  box-shadow: 0 0 8px rgba(247, 213, 29, 0.4);
+  background: var(--color-bg-surface);
+}
+.skill-connector {
+  height: 3px;
+  min-width: 12px;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+.skill-connector--unlocked {
+  background: var(--color-gold);
+}
+.skill-connector-v {
+  width: 3px;
+  height: 16px;
+  background: var(--color-border);
+}
+.skill-connector-v--unlocked {
+  background: var(--color-gold);
+}

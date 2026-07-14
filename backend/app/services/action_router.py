@@ -1,6 +1,7 @@
 from app.models.schemas import ActionType
 from app.services.expenses import add_expense, add_expected_transaction, confirm_transaction
 from app.services.savings import add_savings, withdraw_savings
+from app.services.reading import finish_book, log_reading
 from app.services.habits import toggle_habit
 from app.services.tasks import add_task
 from app.services.study import log_study
@@ -9,6 +10,7 @@ from app.services.reminders import set_reminder, delete_reminder
 from app.services.queries import query_data
 from app.services.gamification import award_xp, get_user_stats
 from app.services.badges import check_and_award_badges
+from app.services.titles import check_and_award_titles
 from app.services.daily_quests import update_quest_progress
 
 
@@ -71,6 +73,14 @@ def _format_badge_feedback(badges_awarded: list[dict]) -> str:
     return "\n" + "\n".join(lines)
 
 
+def _format_title_feedback(titles: list[dict]) -> str:
+    """Formatea feedback de títulos desbloqueados."""
+    if not titles:
+        return ""
+    parts = [f"\n🏆 ¡Nuevo título: {t['name']}!" for t in titles]
+    return "".join(parts)
+
+
 def _format_quest_feedback(quest_result: list[dict]) -> str:
     """Formatea feedback de misiones diarias completadas."""
     if not quest_result:
@@ -87,7 +97,11 @@ async def _track_quests_and_award_bonus(action_type_value: str) -> str:
     # Otorgar XP bonus por cada quest completada
     for completed_quest in quest_result:
         await award_xp("QUEST_BONUS", amount_override=completed_quest["xp_reward"])
-    return _format_quest_feedback(quest_result)
+    feedback = _format_quest_feedback(quest_result)
+    # Gamificación V2.2: chequear títulos al final del pipeline
+    new_titles = await check_and_award_titles()
+    feedback += _format_title_feedback(new_titles)
+    return feedback
 
 
 async def _build_response(
@@ -311,6 +325,31 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                     msg += f" — {result['description']}"
                 return await _build_response(msg)
             return await _build_response(f"Error al retirar de ahorros: {result.get('error', 'desconocido')}")
+
+        elif parsed.action == ActionType.LOG_READING:
+            result = await log_reading(parsed.payload)
+            if result["success"]:
+                book_part = f" de «{result['book_title']}»" if result.get("book_title") else ""
+                msg = f"📖 Sesión de lectura registrada: {result['duration_minutes']} min{book_part}."
+                xp_result = await award_xp(parsed.action)
+                msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(action_type=parsed.action, xp_result=xp_result)
+                msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al registrar la lectura: {result.get('error', 'desconocido')}")
+
+        elif parsed.action == ActionType.FINISH_BOOK:
+            result = await finish_book(parsed.payload)
+            if result["success"]:
+                msg = f"📚 ¡Libro terminado: «{result['title']}»! ({result['category']})"
+                xp_result = await award_xp(parsed.action)
+                msg += _format_xp_feedback(xp_result)
+                badges = await check_and_award_badges(action_type=parsed.action, xp_result=xp_result)
+                msg += _format_badge_feedback(badges)
+                msg += await _track_quests_and_award_bonus(parsed.action.value)
+                return await _build_response(msg, xp_result, badges)
+            return await _build_response(f"Error al registrar el libro: {result.get('error', 'desconocido')}")
 
         elif parsed.action == ActionType.UNKNOWN:
             return await _build_response(

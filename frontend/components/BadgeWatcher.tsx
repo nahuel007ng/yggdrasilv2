@@ -3,29 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import AchievementToast from "@/components/AchievementToast";
+import { ACHIEVEMENTS_BY_CODE } from "@/lib/achievements";
 
 const SEEN_BADGES_KEY = "seenBadgeCodes";
-
-const BADGE_NAMES: Record<string, string> = {
-  first_expense: "Primer gasto",
-  first_habit: "Primer hábito",
-  first_task: "Primera tarea",
-  first_study: "Primera sesión",
-  first_workout: "Primer entrenamiento",
-  streak_7: "Semana de fuego",
-  streak_30: "Mes imparable",
-  perfect_week: "Semana perfecta",
-  xp_1000: "Mil puntos",
-  study_10h: "Diez horas de estudio",
-  workout_30: "30 entrenamientos",
-  all_rounder: "Todoterreno",
-  rank_despertado: "Rango: Despertado",
-  rank_maestro: "Rango: Maestro",
-  rank_santo: "Rango: Santo",
-  rank_soberano: "Rango: Soberano",
-  rank_espiritu: "Rango: Espíritu",
-  rank_dios: "Rango: Dios",
-};
 
 export default function BadgeWatcher() {
   const [newBadges, setNewBadges] = useState<Array<{ code: string; name: string }>>([]);
@@ -58,7 +38,7 @@ export default function BadgeWatcher() {
         if (newOnes.length > 0) {
           setNewBadges(newOnes.map((code) => ({
             code,
-            name: BADGE_NAMES[code] || code,
+            name: ACHIEVEMENTS_BY_CODE[code]?.name || code,
           })));
         }
       });

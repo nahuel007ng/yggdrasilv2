@@ -11,6 +11,8 @@ from app.services.notifications import (
     build_morning_summary,
     get_due_reminders,
 )
+from app.services.badges import check_zero_overdue_badge
+from app.services.titles import check_and_award_titles
 
 logger = logging.getLogger(__name__)
 
@@ -151,8 +153,21 @@ async def job_evening_habits() -> None:
         logger.exception("Error en job_evening_habits")
 
 
+async def job_check_overdue_badge():
+    """22:00 — otorga 'Orden del Fénix' si no hay tareas vencidas y re-chequea títulos."""
+    logger.info("Ejecutando job: check_overdue_badge + titulos")
+    try:
+        badge = await check_zero_overdue_badge()
+        titles = await check_and_award_titles()
+        if badge or titles:
+            names = ([badge["name"]] if badge else []) + [t["name"] for t in titles]
+            await _send_message(f"🏆 ¡Desbloqueaste: {', '.join(names)}!")
+    except Exception:
+        logger.exception("Error en job_check_overdue_badge")
+
+
 def start_scheduler() -> AsyncIOScheduler:
-    """Configura e inicia el scheduler con los 5 jobs de notificaciones."""
+    """Configura e inicia el scheduler con los 6 jobs de notificaciones."""
     scheduler = AsyncIOScheduler()
     tz = settings.notification_timezone
 
@@ -201,9 +216,18 @@ def start_scheduler() -> AsyncIOScheduler:
         replace_existing=True,
     )
 
+    # 6. Badge tareas vencidas + títulos (22:00)
+    scheduler.add_job(
+        job_check_overdue_badge,
+        trigger=CronTrigger(hour=22, minute=0, timezone=tz),
+        id="check_overdue_badge",
+        name="Badge tareas vencidas + títulos",
+        replace_existing=True,
+    )
+
     scheduler.start()
     logger.info(
-        "Scheduler iniciado con 5 jobs: matutino (%s:00), recordatorios (cada 5min), vespertino (%s:00), tx pendientes (9:05), daily quests (4:00) [TZ: %s]",
+        "Scheduler iniciado con 6 jobs: matutino (%s:00), recordatorios (cada 5min), vespertino (%s:00), tx pendientes (9:05), daily quests (4:00), overdue badge + títulos (22:00) [TZ: %s]",
         settings.notification_morning_hour,
         settings.notification_evening_hour,
         tz,
