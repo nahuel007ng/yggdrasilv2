@@ -7,6 +7,7 @@ import AvatarHero from "@/components/AvatarHero";
 import PixelIcon from "@/components/PixelIcon";
 import DailyQuests from "@/components/DailyQuests";
 import { getRankName } from "@/lib/spriteMap";
+import { TITLES_BY_CODE } from "@/lib/achievements";
 
 interface UserProfile {
   display_name: string | null;
@@ -14,6 +15,7 @@ interface UserProfile {
   total_xp: number;
   current_level: number;
   streak_shields: number;
+  active_title: string | null;
 }
 
 function xpForLevel(n: number): number {
@@ -100,7 +102,7 @@ export default function DashboardPage() {
       supabase
         .from("user_profile")
         .select(
-          "display_name, avatar_level, total_xp, current_level, streak_shields"
+          "display_name, avatar_level, total_xp, current_level, streak_shields, active_title"
         )
         .maybeSingle(),
       supabase
@@ -148,6 +150,7 @@ export default function DashboardPage() {
             total_xp: 0,
             current_level: 1,
             streak_shields: 0,
+            active_title: null,
           });
 
         if (txRes.error) setError(txRes.error.message);
@@ -278,24 +281,30 @@ function HeroCard({ profile }: { profile: UserProfile }) {
   const xpSpan = Math.max(xpForNext - xpForCurrent, 1);
   const xpInLevel = Math.max(profile.total_xp - xpForCurrent, 0);
   const progress = Math.min(Math.max((xpInLevel / xpSpan) * 100, 0), 100);
+  const titleDef = profile.active_title ? TITLES_BY_CODE[profile.active_title] : null;
 
   return (
     <div className="flex flex-col gap-2">
       <AvatarHero
         avatarLevel={profile.avatar_level || 1}
         showRankName={false}
+        activeTitle={profile.active_title || null}
       />
       <div className="pixel-card">
-        <div className="flex items-center gap-2 flex-wrap mb-2">
-          <span className="text-pixel text-mana text-sm">
-            Nivel {profile.current_level}
-          </span>
-          <span className="text-muted">·</span>
+        <div className="flex flex-col items-center gap-1 mb-2 text-center">
           <span
             className="text-[--color-text] break-words"
             style={{ fontSize: "14px" }}
           >
             {profile.display_name || "Aventurero"} — {getRankName(profile.avatar_level || 1)}
+          </span>
+          {titleDef && (
+            <span className={`text-pixel text-xs title-${titleDef.rarity}`}>
+              « {titleDef.name} »
+            </span>
+          )}
+          <span className="text-pixel text-mana text-sm">
+            Nivel {profile.current_level}
           </span>
           {profile.streak_shields > 0 && (
             <span className="text-xp text-xs flex items-center gap-1"><PixelIcon name="shield" size={14} /> x{profile.streak_shields}</span>

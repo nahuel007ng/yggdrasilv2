@@ -27,6 +27,7 @@ export default function AvatarCard({
         <AvatarHero
           avatarLevel={avatarLevel || 1}
           showRankName={true}
+          activeTitle={activeTitle}
         />
         <p className="text-pixel text-sm text-mana">Nivel {currentLevel}</p>
         {displayName && (
