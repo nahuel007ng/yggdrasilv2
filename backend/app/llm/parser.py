@@ -40,11 +40,21 @@ async def parse_message(text: str) -> ParsedAction | ParseError:
                     ],
                     "temperature": 0.1,
                     "max_tokens": 1024,
+                    "response_format": {"type": "json_object"},
                 },
             )
             response.raise_for_status()
 
         data = response.json()
+        usage = data.get("usage", {})
+        logger.info(
+            "LLM usage — prompt: %s (cache hit: %s, miss: %s), completion: %s, total: %s",
+            usage.get("prompt_tokens"),
+            usage.get("prompt_cache_hit_tokens"),
+            usage.get("prompt_cache_miss_tokens"),
+            usage.get("completion_tokens"),
+            usage.get("total_tokens"),
+        )
         content = data["choices"][0]["message"]["content"]
         content = _clean_llm_response(content)
 

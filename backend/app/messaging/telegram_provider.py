@@ -1,4 +1,5 @@
 import logging
+from collections import deque
 from typing import Callable, Awaitable
 
 import telegram
@@ -7,6 +8,8 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from app.db.supabase import get_supabase
 
 logger = logging.getLogger(__name__)
+
+_processed_updates: deque[int] = deque(maxlen=100)
 
 MessageHandlerCallback = Callable[[str, str, str], Awaitable[str]]
 
@@ -39,6 +42,10 @@ class TelegramProvider:
         self._app.add_handler(CommandHandler("help", help_command))
 
         async def _handle(update, context):
+            if update.update_id in _processed_updates:
+                logger.warning("Update %s duplicado — ignorado", update.update_id)
+                return
+            _processed_updates.append(update.update_id)
             await update.message.reply_chat_action("typing")
             chat_id = update.effective_chat.id
 

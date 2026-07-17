@@ -257,13 +257,20 @@ async def check_and_award_badges(
         if await _check_badge_condition(
             badge_code, supabase, xp_result, streak_result, perfect_week_result
         ):
-            supabase.table("badges").insert(
-                {"code": badge_code.value, "user_id": get_user_id()}
-            ).execute()
-            newly_awarded.append({
-                "code": badge_code.value,
-                "name": BADGE_NAMES[badge_code],
-            })
+            upsert_result = (
+                supabase.table("badges")
+                .upsert(
+                    {"code": badge_code.value, "user_id": get_user_id()},
+                    on_conflict="user_id,code",
+                    ignore_duplicates=True,
+                )
+                .execute()
+            )
+            if upsert_result.data:
+                newly_awarded.append({
+                    "code": badge_code.value,
+                    "name": BADGE_NAMES[badge_code],
+                })
 
     return newly_awarded
 
@@ -481,10 +488,17 @@ async def check_zero_overdue_badge() -> dict | None:
     )
     if (overdue.count or 0) > 0:
         return None
-    supabase.table("badges").insert({
-        "code": BadgeCode.TASKS_ZERO_OVERDUE.value,
-        "user_id": get_user_id(),
-    }).execute()
+    upsert_result = (
+        supabase.table("badges")
+        .upsert(
+            {"code": BadgeCode.TASKS_ZERO_OVERDUE.value, "user_id": get_user_id()},
+            on_conflict="user_id,code",
+            ignore_duplicates=True,
+        )
+        .execute()
+    )
+    if not upsert_result.data:
+        return None
     return {
         "code": BadgeCode.TASKS_ZERO_OVERDUE.value,
         "name": BADGE_NAMES[BadgeCode.TASKS_ZERO_OVERDUE],

@@ -19,6 +19,8 @@ class ActionType(str, Enum):
     WITHDRAW_SAVINGS = "WITHDRAW_SAVINGS"
     LOG_READING = "LOG_READING"
     FINISH_BOOK = "FINISH_BOOK"
+    QUERY_ANALYTICS = "QUERY_ANALYTICS"
+    GET_RECOMMENDATION = "GET_RECOMMENDATION"
     UNKNOWN = "UNKNOWN"
 
 
@@ -69,6 +71,14 @@ class ParsedPayload(BaseModel):
     book_title: Optional[str] = None
     title: Optional[str] = None
     author: Optional[str] = None
+
+    # QUERY_ANALYTICS
+    metric: Optional[str] = None
+    target_amount: Optional[float] = None
+    original_question: Optional[str] = None
+
+    # GET_RECOMMENDATION
+    topic: Optional[str] = None
 
 
 class ParsedAction(BaseModel):

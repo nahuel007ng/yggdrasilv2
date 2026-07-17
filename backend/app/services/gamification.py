@@ -21,6 +21,8 @@ XP_REWARDS: dict[ActionType, int] = {
     ActionType.WITHDRAW_SAVINGS: 0,
     ActionType.LOG_READING: 15,
     ActionType.FINISH_BOOK: 40,
+    ActionType.QUERY_ANALYTICS: 0,
+    ActionType.GET_RECOMMENDATION: 0,
     ActionType.UNKNOWN: 0,
 }
 
@@ -71,23 +73,19 @@ async def award_xp(
         "user_id": get_user_id(),
     }).execute()
 
-    # 2. Leer perfil actual
-    profile = supabase.table("user_profile").select("id, total_xp, current_level").execute()
-    profile_data = profile.data[0]
-    old_total = profile_data["total_xp"] or 0
+    # 2. XP atómico via RPC: incrementa y devuelve el nuevo total
+    rpc_result = supabase.rpc("increment_xp", {"p_user_id": get_user_id(), "p_amount": xp_amount}).execute()
+    new_total = rpc_result.data[0]["new_total_xp"]
+    old_total = new_total - xp_amount
     old_level = calculate_level(old_total)
-
-    # 3. Calcular nuevos valores
-    new_total = old_total + xp_amount
     new_level = calculate_level(new_total)
     leveled_up = new_level > old_level
 
-    # 4. Actualizar perfil (avatar_level sync con current_level para activar rangos)
+    # 3. Sincronizar current_level y avatar_level
     supabase.table("user_profile").update({
-        "total_xp": new_total,
         "current_level": new_level,
         "avatar_level": new_level,
-    }).eq("id", profile_data["id"]).execute()
+    }).eq("user_id", get_user_id()).execute()
 
     # 5. Info para el bot
     next_level_xp = xp_for_level(new_level + 1)

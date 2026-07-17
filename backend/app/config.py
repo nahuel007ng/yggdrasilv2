@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     # App
     debug: bool = False
 
+    # Validación de plausibilidad (0 = deshabilitado)
+    max_study_minutes_without_confirm: int = 480     # 8 horas
+    max_reading_minutes_without_confirm: int = 480
+    max_expense_without_confirm: float = 500_000     # ARS
+
     class Config:
         env_file = ".env"
 

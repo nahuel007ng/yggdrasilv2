@@ -12,10 +12,11 @@
     "Otros": []
   },
   "habit_aliases": {
-    "meditar": ["meditacion", "medite", "mindfulness"],
-    "ejercicio": ["entrene", "entrenamiento", "gimnasio", "gym", "corri", "correr"],
-    "leer": ["lei", "lectura", "libro"],
-    "agua": ["tome agua", "hidratacion", "vasos de agua"]
+    "Meditación": ["meditar", "meditacion", "medité", "mindfulness"],
+    "Agua (8 vasos)": ["agua", "tomar agua", "vasos de agua", "8 vasos", "hidratación"],
+    "Ejercicio": ["ejercicio", "entrenar", "entrené", "gym", "gimnasio", "hice ejercicio"],
+    "Lectura": ["lectura", "leer", "leí"],
+    "Estudio": ["estudio", "estudiar", "estudié"]
   },
   "subject_aliases": {
     "Introduccion a la Computacion": ["intro compu", "intro computacion"],

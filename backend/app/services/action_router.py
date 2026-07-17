@@ -1,4 +1,12 @@
+import logging
+
 from app.models.schemas import ActionType
+from app.bot import replies
+
+logger = logging.getLogger(__name__)
+from app.llm.composer import compose_reply
+from app.services.analytics import get_metric
+from app.services.recommendations import get_recommendation
 from app.services.expenses import add_expense, add_expected_transaction, confirm_transaction
 from app.services.savings import add_savings, withdraw_savings
 from app.services.reading import finish_book, log_reading
@@ -94,10 +102,14 @@ def _format_quest_feedback(quest_result: list[dict]) -> str:
 async def _track_quests_and_award_bonus(action_type_value: str) -> str:
     """Trackea progreso de quests y otorga XP bonus por quests completadas."""
     quest_result = await update_quest_progress(action_type_value)
-    # Otorgar XP bonus por cada quest completada
+    level_up_lines: list[str] = []
     for completed_quest in quest_result:
-        await award_xp("QUEST_BONUS", amount_override=completed_quest["xp_reward"])
+        xp_result = await award_xp("QUEST_BONUS", amount_override=completed_quest["xp_reward"])
+        if xp_result.get("leveled_up"):
+            level_up_lines.append(f"🎉 ¡Subiste al nivel {xp_result['new_level']}!")
     feedback = _format_quest_feedback(quest_result)
+    if level_up_lines:
+        feedback += "\n" + "\n".join(level_up_lines)
     # Gamificación V2.2: chequear títulos al final del pipeline
     new_titles = await check_and_award_titles()
     feedback += _format_title_feedback(new_titles)
@@ -141,7 +153,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await add_expense(parsed.payload)
             if result["success"]:
                 amount_str = f"${result['amount']:,.0f}" if result["amount"] else "monto no especificado"
-                msg = f"Gasto registrado: {amount_str} en {result['category']}."
+                msg = f"{replies.prefix()} Gasto registrado: {amount_str} en {result['category']}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -157,7 +169,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await add_expected_transaction(parsed.payload)
             if result["success"]:
                 tipo = "Ingreso" if result["type"] == "income" else "Gasto"
-                msg = f"📋 {tipo} esperado registrado: ${result['amount']:,.0f}"
+                msg = f"{replies.prefix()} 📋 {tipo} esperado registrado: ${result['amount']:,.0f}"
                 if result.get("description"):
                     msg += f" — {result['description']}"
                 msg += f"\n📅 Fecha esperada: {result['expected_date']}"
@@ -177,7 +189,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await confirm_transaction(parsed.payload)
             if result["success"]:
                 if result["confirmed"]:
-                    msg = f"✅ Transacción confirmada: ${result['amount']:,.0f}"
+                    msg = f"{replies.prefix()} ✅ Transacción confirmada: ${result['amount']:,.0f}"
                     if result.get("amount_changed"):
                         msg += f" (ajustado de ${result['original_amount']:,.0f})"
                     xp_result = await award_xp(parsed.action)
@@ -196,7 +208,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
         elif parsed.action == ActionType.TOGGLE_HABIT:
             result = await toggle_habit(parsed.payload)
             if result["success"]:
-                msg = f"Hábito completado: {result['habit_name']} ({result['date']})."
+                msg = f"{replies.prefix()} Hábito completado: {result['habit_name']} ({result['date']})."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 msg += _format_streak_feedback(result)
@@ -215,7 +227,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await add_task(parsed.payload)
             if result["success"]:
                 due = f" (deadline: {result['due_date']})" if result['due_date'] else ""
-                msg = f"Tarea creada: {result['title']}{due}."
+                msg = f"{replies.prefix()} Tarea creada: {result['title']}{due}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -231,7 +243,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await log_study(parsed.payload)
             if result["success"]:
                 dur = f" ({result['duration_minutes']} min)" if result.get("duration_minutes") else ""
-                msg = f"Sesión de estudio registrada: {result['subject']}{dur}."
+                msg = f"{replies.prefix()} Sesión de estudio registrada: {result['subject']}{dur}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -246,7 +258,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
         elif parsed.action == ActionType.LOG_WORKOUT:
             result = await log_workout(parsed.payload)
             if result["success"]:
-                msg = f"Entrenamiento registrado: {result['exercise_count']} ejercicios ({result['date']})."
+                msg = f"{replies.prefix()} Entrenamiento registrado: {result['exercise_count']} ejercicios ({result['date']})."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -266,7 +278,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 anticipation_str = ""
                 if result.get("remind_before_minutes", 0) > 0:
                     anticipation_str = f" (anticipación: {result['remind_before_minutes']} min)"
-                msg = f"Recordatorio creado: {result['description']} para el {result['reminder_date']}{time_str}{recurring_str}{anticipation_str}."
+                msg = f"{replies.prefix()} Recordatorio creado: {result['description']} para el {result['reminder_date']}{time_str}{recurring_str}{anticipation_str}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -302,7 +314,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await add_savings(parsed.payload)
             if result["success"]:
                 amount_str = f"${result['amount']:,.0f}" if result["amount"] else "monto no especificado"
-                msg = f"💰 Ahorro registrado: {amount_str}"
+                msg = f"{replies.prefix()} 💰 Ahorro registrado: {amount_str}"
                 if result.get("description"):
                     msg += f" — {result['description']}"
                 xp_result = await award_xp(parsed.action)
@@ -330,7 +342,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await log_reading(parsed.payload)
             if result["success"]:
                 book_part = f" de «{result['book_title']}»" if result.get("book_title") else ""
-                msg = f"📖 Sesión de lectura registrada: {result['duration_minutes']} min{book_part}."
+                msg = f"{replies.prefix()} 📖 Sesión de lectura registrada: {result['duration_minutes']} min{book_part}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(action_type=parsed.action, xp_result=xp_result)
@@ -342,7 +354,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
         elif parsed.action == ActionType.FINISH_BOOK:
             result = await finish_book(parsed.payload)
             if result["success"]:
-                msg = f"📚 ¡Libro terminado: «{result['title']}»! ({result['category']})"
+                msg = f"{replies.prefix()} 📚 ¡Libro terminado: «{result['title']}»! ({result['category']})"
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(action_type=parsed.action, xp_result=xp_result)
@@ -350,6 +362,23 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
             return await _build_response(f"Error al registrar el libro: {result.get('error', 'desconocido')}")
+
+        elif parsed.action == ActionType.QUERY_ANALYTICS:
+            result = await get_metric(parsed.payload)
+            if result["success"]:
+                reply = await compose_reply(
+                    parsed.payload.original_question or "",
+                    result["metric"],
+                    result["data"],
+                )
+                return await _build_response(reply)
+            return await _build_response(result["error"])
+
+        elif parsed.action == ActionType.GET_RECOMMENDATION:
+            result = await get_recommendation(parsed.payload)
+            if result["success"]:
+                return await _build_response(result["reply"])
+            return await _build_response(result["error"])
 
         elif parsed.action == ActionType.UNKNOWN:
             return await _build_response(
@@ -367,5 +396,6 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
         else:
             return await _build_response(f"Acción '{parsed.action}' no está implementada todavía.")
 
-    except Exception as e:
-        return await _build_response(f"Error al ejecutar la acción: {e!s}")
+    except Exception:
+        logger.exception("Error ejecutando acción %s", parsed.action if parsed else "UNKNOWN")
+        return await _build_response(replies.ERROR_GENERIC)
