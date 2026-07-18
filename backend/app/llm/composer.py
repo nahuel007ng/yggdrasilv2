@@ -4,13 +4,14 @@ import logging
 import httpx
 
 from app.config import settings
+from app.bot.persona import PERSONA_PROMPT
 
 logger = logging.getLogger(__name__)
 
 COMPOSER_SYSTEM = (
-    "Sos Yggdrasil, un asistente personal argentino. Te paso la pregunta del usuario "
-    "y los datos reales calculados desde su base de datos. Redactá una respuesta breve (2-5 líneas), "
-    "natural, en español argentino (vos), con los números formateados ($1.234, horas legibles). "
+    PERSONA_PROMPT
+    + " Te paso la pregunta del usuario y los datos reales calculados desde su base de datos. "
+    "Redactá la respuesta en español argentino (vos), con los números formateados ($1.234, horas legibles). "
     "No inventes datos que no estén en el JSON. Si los datos son insuficientes, decilo honestamente "
     "y sugerí qué registrar. Podés cerrar con UNA observación útil si surge de los datos."
 )
@@ -62,7 +63,7 @@ def _format_fallback(metric: str, data: dict) -> str:
     else:
         parts.append(json.dumps(data, ensure_ascii=False, default=str))
 
-    return "\n".join(parts)
+    return "Gran Maestro, los archivos del Sistema reportan:\n" + "\n".join(parts)
 
 
 async def compose_reply(question: str, metric: str, data: dict) -> str:
@@ -85,7 +86,7 @@ async def compose_reply(question: str, metric: str, data: dict) -> str:
                         },
                     ],
                     "temperature": 0.7,
-                    "max_tokens": 400,
+                    "max_tokens": 1024,
                 },
             )
             response.raise_for_status()
@@ -102,7 +103,14 @@ async def compose_reply(question: str, metric: str, data: dict) -> str:
         )
 
         content = response_data["choices"][0]["message"]["content"]
-        return content.strip()
+        text = (content or "").strip()
+        if not text:
+            logger.warning(
+                "Composer LLM devolvió contenido vacío (métrica: %s), usando fallback",
+                metric,
+            )
+            return _format_fallback(metric, data)
+        return text
 
     except Exception:
         logger.exception("Error en composer LLM, usando fallback")

@@ -58,7 +58,7 @@ async def build_morning_summary() -> str | None:
                 elif due_str == tomorrow.isoformat():
                     due_tasks.append(f"  - {t['title']} (vence manana)")
         if due_tasks:
-            sections.append("Tareas para hoy/manana:\n" + "\n".join(due_tasks))
+            sections.append("Misiones para hoy/manana:\n" + "\n".join(due_tasks))
 
     # --- Recordatorios del dia ---
     reminders_result = (
@@ -89,7 +89,7 @@ async def build_morning_summary() -> str | None:
     if not sections:
         return None
 
-    return "Buenos dias! Tu resumen de hoy:\n\n" + "\n\n".join(sections)
+    return "Bienvenido, Gran Maestro. Reporte del día:\n\n" + "\n\n".join(sections) + "\n\n¿En qué puedo servirle?"
 
 
 async def get_due_reminders() -> list[str]:
@@ -128,11 +128,11 @@ async def get_due_reminders() -> list[str]:
 
             # Si se dispara por anticipación (antes de la hora real), agregar nota
             if remind_before > 0 and current_time < reminder_time_val:
-                messages.append(f"Recordatorio (en {remind_before} min): {reminder['description']}")
+                messages.append(f"Gran Maestro, recordatorio (en {remind_before} min): {reminder['description']}")
             else:
-                messages.append(f"Recordatorio: {reminder['description']}")
+                messages.append(f"Gran Maestro, recordatorio: {reminder['description']}")
         else:
-            messages.append(f"Recordatorio: {reminder['description']}")
+            messages.append(f"Gran Maestro, recordatorio: {reminder['description']}")
 
         # Marcar como completado
         supabase.table("reminders").update({"is_completed": True}).eq("id", reminder["id"]).execute()
@@ -190,9 +190,9 @@ async def build_evening_habits() -> str | None:
 
     lines = "\n".join(f"  - {h['name']}" for h in pending)
     return (
-        f"Todavia te faltan {len(pending)} habitos para hoy:\n\n"
+        f"El ocaso se acerca, Gran Maestro. Aún quedan {len(pending)} forjas pendientes:\n\n"
         f"{lines}\n\n"
-        "Dale que se puede!"
+        "El tiempo no espera."
     )
 
 

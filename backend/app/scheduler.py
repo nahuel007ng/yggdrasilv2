@@ -111,7 +111,7 @@ async def job_check_pending_transactions() -> None:
             amount = tx["amount"]
             desc = tx.get("description", "")
             msg = (
-                f"📋 Hoy esperabas {tipo} ${amount:,.0f}"
+                f"📋 Gran Maestro, hoy esperabas {tipo} ${amount:,.0f}"
                 f"{' — ' + desc if desc else ''}.\n"
                 f"¿Se concretó? Respondé sí/no (podés ajustar el monto, ej: 'sí pero a 600mil')"
                 f"\n\n_ID: {tx['id']}_"
@@ -161,7 +161,7 @@ async def job_check_overdue_badge():
         titles = await check_and_award_titles()
         if badge or titles:
             names = ([badge["name"]] if badge else []) + [t["name"] for t in titles]
-            await _send_message(f"🏆 ¡Desbloqueaste: {', '.join(names)}!")
+            await _send_message(f"🏆 ¡Has despertado: {', '.join(names)}, Gran Maestro!")
     except Exception:
         logger.exception("Error en job_check_overdue_badge")
 

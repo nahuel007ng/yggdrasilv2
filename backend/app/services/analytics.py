@@ -26,6 +26,7 @@ async def avg_expense(date_from: date | None, date_to: date | None) -> dict:
         .gte("date", date_from_str)
         .lte("date", date_to_str)
         .eq("user_id", user_id)
+        .eq("type", "expense")
         .execute()
     )
 
@@ -79,6 +80,7 @@ async def expense_by_category(category: str | None, date_from: date | None, date
         .gte("date", date_from_str)
         .lte("date", date_to_str)
         .eq("user_id", user_id)
+        .eq("type", "expense")
     )
     result = query.execute()
 
@@ -274,5 +276,5 @@ async def get_metric(payload: ParsedPayload) -> dict:
     elif metric == "study_stats":
         data = await study_stats(payload.date_from, payload.date_to)
     else:
-        return {"success": False, "error": f"Métrica desconocida: '{metric}'"}
+        return {"success": False, "error": f"Gran Maestro, métrica desconocida: '{metric}'"}
     return {"success": True, "metric": metric, "data": data}

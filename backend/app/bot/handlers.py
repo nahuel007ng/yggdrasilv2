@@ -49,13 +49,13 @@ async def parse_and_execute(text: str, user_id: str | None = None) -> str:
             response = await execute_action(pending)
             return response["reply"]
         if normalized in _NO:
-            return "Ok, cancelado. No registré nada."
+            return "Cancelado, Gran Maestro. El Sistema no registró nada."
         # ni sí ni no: se descarta el pendiente y se procesa el mensaje nuevo normalmente
 
     result = await parse_message(text)
 
     if isinstance(result, ParseError):
-        return f"No pude procesar tu mensaje. {result.error}\nIntentá reformularlo."
+        return f"No pude procesar tu mensaje, Gran Maestro. {result.error}\nIntentá reformularlo."
 
     reason = _check_plausibility(result)
     if reason:

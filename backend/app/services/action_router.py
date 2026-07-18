@@ -33,7 +33,7 @@ def _format_xp_feedback(xp_result: dict) -> str:
     feedback = " ".join(parts)
 
     if xp_result["leveled_up"]:
-        feedback += f"\n🎉 ¡Subiste al nivel {xp_result['new_level']}!"
+        feedback += f"\n🎉 ¡Has ascendido al nivel {xp_result['new_level']}, Gran Maestro!"
 
     return f"\n{feedback}"
 
@@ -76,7 +76,7 @@ def _format_badge_feedback(badges_awarded: list[dict]) -> str:
 
     lines = []
     for badge in badges_awarded:
-        lines.append(f"Badge desbloqueado: {badge['name']}!")
+        lines.append(f"¡Has despertado el logro «{badge['name']}», Gran Maestro!")
 
     return "\n" + "\n".join(lines)
 
@@ -85,7 +85,7 @@ def _format_title_feedback(titles: list[dict]) -> str:
     """Formatea feedback de títulos desbloqueados."""
     if not titles:
         return ""
-    parts = [f"\n🏆 ¡Nuevo título: {t['name']}!" for t in titles]
+    parts = [f"\n🏆 ¡Nuevo título: {t['name']}, Gran Maestro!" for t in titles]
     return "".join(parts)
 
 
@@ -106,7 +106,7 @@ async def _track_quests_and_award_bonus(action_type_value: str) -> str:
     for completed_quest in quest_result:
         xp_result = await award_xp("QUEST_BONUS", amount_override=completed_quest["xp_reward"])
         if xp_result.get("leveled_up"):
-            level_up_lines.append(f"🎉 ¡Subiste al nivel {xp_result['new_level']}!")
+            level_up_lines.append(f"🎉 ¡Has ascendido al nivel {xp_result['new_level']}, Gran Maestro!")
     feedback = _format_quest_feedback(quest_result)
     if level_up_lines:
         feedback += "\n" + "\n".join(level_up_lines)
@@ -163,7 +163,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al registrar gasto: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al registrar gasto: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.ADD_EXPECTED:
             result = await add_expected_transaction(parsed.payload)
@@ -173,7 +173,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 if result.get("description"):
                     msg += f" — {result['description']}"
                 msg += f"\n📅 Fecha esperada: {result['expected_date']}"
-                msg += "\nTe voy a avisar cuando llegue la fecha."
+                msg += "\nEl Sistema te avisará cuando llegue la fecha."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -183,7 +183,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al registrar transacción esperada: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al registrar transacción esperada: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.CONFIRM_TRANSACTION:
             result = await confirm_transaction(parsed.payload)
@@ -202,8 +202,8 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                     msg += await _track_quests_and_award_bonus(parsed.action.value)
                     return await _build_response(msg, xp_result, badges)
                 else:
-                    return await _build_response("❌ Transacción cancelada.")
-            return await _build_response(f"Error al confirmar transacción: {result.get('error', 'desconocido')}")
+                    return await _build_response("❌ Transacción cancelada, Gran Maestro.")
+            return await _build_response(f"Error al confirmar transacción: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.TOGGLE_HABIT:
             result = await toggle_habit(parsed.payload)
@@ -221,13 +221,13 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error con hábito: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error con hábito: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.ADD_TASK:
             result = await add_task(parsed.payload)
             if result["success"]:
                 due = f" (deadline: {result['due_date']})" if result['due_date'] else ""
-                msg = f"{replies.prefix()} Tarea creada: {result['title']}{due}."
+                msg = f"{replies.prefix()} Misión registrada: {result['title']}{due}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -237,13 +237,15 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al crear tarea: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al crear tarea: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.LOG_STUDY:
             result = await log_study(parsed.payload)
             if result["success"]:
-                dur = f" ({result['duration_minutes']} min)" if result.get("duration_minutes") else ""
-                msg = f"{replies.prefix()} Sesión de estudio registrada: {result['subject']}{dur}."
+                if result.get("duration_minutes"):
+                    msg = f"{replies.prefix()} Has forjado {result['duration_minutes']} min de estudio de {result['subject']}."
+                else:
+                    msg = f"{replies.prefix()} Sesión de estudio registrada: {result['subject']}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -253,7 +255,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al registrar estudio: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al registrar estudio: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.LOG_WORKOUT:
             result = await log_workout(parsed.payload)
@@ -268,7 +270,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al registrar entrenamiento: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al registrar entrenamiento: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.SET_REMINDER:
             result = await set_reminder(parsed.payload)
@@ -288,35 +290,36 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al crear recordatorio: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al crear recordatorio: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.DELETE_REMINDER:
             result = await delete_reminder(parsed.payload)
             if result["success"]:
                 recurring_note = " (se canceló la recurrencia)" if result.get("was_recurring") else ""
-                msg = f"Recordatorio eliminado: {result['description']} ({result['reminder_date']}){recurring_note}."
+                msg = f"Recordatorio eliminado: {result['description']} ({result['reminder_date']}){recurring_note}, Gran Maestro."
                 return await _build_response(msg)
             elif result.get("error") == "ambiguous":
                 matches_str = "\n".join(result["matches"])
-                msg = f"Encontré varios recordatorios que coinciden con \"{result['description']}\":\n{matches_str}\n\nSé más específico para que pueda eliminar el correcto."
+                msg = f"Gran Maestro, encontré varios recordatorios que coinciden con \"{result['description']}\":\n{matches_str}\n\nSé más específico para que el Sistema elimine el correcto."
                 return await _build_response(msg)
             else:
-                msg = f"No encontré ningún recordatorio activo que coincida con \"{result['description']}\"."
+                msg = f"No encontré ningún recordatorio activo que coincida con \"{result['description']}\", Gran Maestro."
                 return await _build_response(msg)
 
         elif parsed.action == ActionType.QUERY_DATA:
             result = await query_data(parsed.payload)
             if result["success"]:
-                return await _build_response(result["summary"])
-            return await _build_response(f"Error al consultar datos: {result.get('error', 'desconocido')}")
+                return await _build_response(f"Gran Maestro, aquí está tu reporte:\n\n{result['summary']}")
+            return await _build_response(f"Error al consultar datos: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.ADD_SAVINGS:
             result = await add_savings(parsed.payload)
             if result["success"]:
                 amount_str = f"${result['amount']:,.0f}" if result["amount"] else "monto no especificado"
-                msg = f"{replies.prefix()} 💰 Ahorro registrado: {amount_str}"
+                msg = f"{replies.prefix()} 💰 Has añadido {amount_str} a la reserva"
                 if result.get("description"):
                     msg += f" — {result['description']}"
+                msg += ". El tesoro del clan crece."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
@@ -326,42 +329,43 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al registrar ahorro: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al registrar ahorro: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.WITHDRAW_SAVINGS:
             result = await withdraw_savings(parsed.payload)
             if result["success"]:
                 amount_str = f"${result['amount']:,.0f}" if result["amount"] else "monto no especificado"
-                msg = f"💸 Retiro de ahorros: {amount_str}"
+                msg = f"💸 Retiro de la reserva: {amount_str}"
                 if result.get("description"):
                     msg += f" — {result['description']}"
+                msg += ", Gran Maestro."
                 return await _build_response(msg)
-            return await _build_response(f"Error al retirar de ahorros: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al retirar de ahorros: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.LOG_READING:
             result = await log_reading(parsed.payload)
             if result["success"]:
                 book_part = f" de «{result['book_title']}»" if result.get("book_title") else ""
-                msg = f"{replies.prefix()} 📖 Sesión de lectura registrada: {result['duration_minutes']} min{book_part}."
+                msg = f"{replies.prefix()} 📖 {result['duration_minutes']} min de lectura absorbidos de los pergaminos{book_part}."
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(action_type=parsed.action, xp_result=xp_result)
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al registrar la lectura: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al registrar la lectura: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.FINISH_BOOK:
             result = await finish_book(parsed.payload)
             if result["success"]:
-                msg = f"{replies.prefix()} 📚 ¡Libro terminado: «{result['title']}»! ({result['category']})"
+                msg = f"{replies.prefix()} 📚 ¡Pergamino completado: «{result['title']}»! ({result['category']})"
                 xp_result = await award_xp(parsed.action)
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(action_type=parsed.action, xp_result=xp_result)
                 msg += _format_badge_feedback(badges)
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
-            return await _build_response(f"Error al registrar el libro: {result.get('error', 'desconocido')}")
+            return await _build_response(f"Error al registrar el libro: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.QUERY_ANALYTICS:
             result = await get_metric(parsed.payload)
@@ -382,7 +386,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
 
         elif parsed.action == ActionType.UNKNOWN:
             return await _build_response(
-                "No entendí qué querés hacer. Probá con algo como:\n"
+                "Comando no reconocido, Gran Maestro. Podés decirme cosas como:\n"
                 "- 'gasté 200 en comida'\n"
                 "- 'el 10 cobro NODO 80000'\n"
                 "- 'hice ejercicio'\n"
@@ -394,7 +398,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             )
 
         else:
-            return await _build_response(f"Acción '{parsed.action}' no está implementada todavía.")
+            return await _build_response(f"Acción '{parsed.action}' no está implementada todavía, Gran Maestro.")
 
     except Exception:
         logger.exception("Error ejecutando acción %s", parsed.action if parsed else "UNKNOWN")
