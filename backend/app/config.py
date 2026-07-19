@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # App
     debug: bool = False
 
+    # Wake-On-LAN
+    wol_target_mac: str | None = None
+    wol_broadcast_ip: str = "255.255.255.255"
+
     # Validación de plausibilidad (0 = deshabilitado)
     max_study_minutes_without_confirm: int = 480     # 8 horas
     max_reading_minutes_without_confirm: int = 480

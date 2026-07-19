@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.chat import router as chat_router
+from app.api.wol import router as wol_router
 from app.config import settings
 from app.messaging.registry import registry
 from app.messaging.telegram_provider import TelegramProvider
@@ -71,6 +72,7 @@ app.add_middleware(
 )
 
 app.include_router(chat_router)
+app.include_router(wol_router)
 
 
 @app.get("/health")

@@ -1,3 +1,6 @@
+# Nota Termux/ARM: neonize, uvloop y httptools (via uvicorn[standard]) pueden
+# requerir compilar desde source si no hay wheels para el entorno de Termux.
+# Instalar antes: pkg install rust clang golang (ver backend/README.md).
 fastapi==0.115.*
 uvicorn[standard]==0.34.*
 httpx==0.28.*
