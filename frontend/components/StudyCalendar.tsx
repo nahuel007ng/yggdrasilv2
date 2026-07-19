@@ -77,7 +77,10 @@ export default function StudyCalendar({ month, year }: StudyCalendarProps) {
         <div className="overflow-x-auto">
           <div className="grid grid-cols-7 gap-1 min-w-[280px]">
             {DOW_LABELS.map((d) => (
-              <div key={d} className="text-center text-xs text-muted py-1">
+              <div
+                key={d}
+                className="text-center text-xs text-muted text-pixel py-1"
+              >
                 {d}
               </div>
             ))}
@@ -92,18 +95,31 @@ export default function StudyCalendar({ month, year }: StudyCalendarProps) {
               const hasStudy = hours !== undefined && hours > 0;
 
               let cellClass =
-                "flex flex-col items-center justify-center py-2 text-xs ";
+                "flex flex-col items-center justify-center py-2 text-xs border ";
+              const cellStyle: React.CSSProperties = {
+                backgroundColor: "var(--color-bg)",
+              };
+
               if (hasStudy) {
-                cellClass += "bg-[--color-xp]/20 text-xp";
+                cellClass += "text-mana border-[--color-mana]";
+                cellStyle.backgroundColor =
+                  "color-mix(in srgb, var(--color-mana) 25%, transparent)";
+                cellStyle.boxShadow = "var(--glow-mana-soft)";
               } else if (isFuture) {
-                cellClass += "bg-[--color-bg-surface] text-muted";
+                cellClass += "text-muted border-[--color-border]";
               } else {
-                cellClass += "bg-[--color-bg-surface] text-muted";
+                cellClass += "text-muted border-[--color-border]";
               }
-              if (isToday) cellClass += " ring-2 ring-[--color-gold]";
+
+              if (isToday) {
+                cellClass = cellClass
+                  .replace("border-[--color-border]", "border-[--color-border-accent]")
+                  .replace("border-[--color-mana]", "border-[--color-border-accent]");
+                cellStyle.boxShadow = "var(--glow-mana-soft)";
+              }
 
               return (
-                <div key={dateStr} className={cellClass}>
+                <div key={dateStr} className={cellClass} style={cellStyle}>
                   <span>{day}</span>
                   {hasStudy && (
                     <span className="text-[9px]">{hours.toFixed(1)}h</span>

@@ -51,6 +51,7 @@ export default function EstudiosPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <h2 className="section-title">Estudios</h2>
       <div className="flex items-center justify-between pixel-card p-3">
         <button
           type="button"

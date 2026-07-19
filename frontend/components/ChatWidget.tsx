@@ -11,6 +11,27 @@ interface Message {
   level?: number | null;
 }
 
+const CHAT_FAB_CSS = `
+.chat-fab {
+  color: var(--color-mana-light);
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
+    0 var(--pixel-size) 0 0 var(--color-border-accent),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-accent),
+    var(--pixel-size) 0 0 0 var(--color-border-accent),
+    var(--glow-mana);
+}
+.chat-fab.chat-fab:hover {
+  background-color: var(--color-bg-surface-hover);
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
+    0 var(--pixel-size) 0 0 var(--color-border-accent),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-accent),
+    var(--pixel-size) 0 0 0 var(--color-border-accent),
+    var(--glow-mana-soft);
+}
+`;
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -154,7 +175,6 @@ export default function ChatWidget() {
         width: "100%",
         height: "100dvh",
         zIndex: 70,
-        background: "var(--color-bg-surface)",
       }
     : {
         position: "fixed",
@@ -163,40 +183,27 @@ export default function ChatWidget() {
         width: "360px",
         height: "500px",
         zIndex: 70,
-        background: "var(--color-bg-surface)",
       };
 
   return (
     <>
+      <style>{CHAT_FAB_CSS}</style>
+
       {/* Backdrop */}
       {isOpen && (
         <div
           aria-hidden="true"
           onClick={() => setIsOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 60,
-            background: "rgba(0,0,0,0.35)",
-          }}
+          className="fixed inset-0 z-[60] bg-black/35"
         />
       )}
 
       {/* Chat panel */}
       {isOpen && (
-        <div className="pixel-border flex flex-col" style={panelStyle}>
+        <div className="panel-system flex flex-col" style={panelStyle}>
           {/* Header */}
-          <div
-            className="flex items-center justify-between px-3 py-2"
-            style={{
-              borderBottom: "2px solid var(--color-border)",
-              background: "var(--color-bg)",
-              flexShrink: 0,
-            }}
-          >
-            <span className="text-pixel text-[10px] text-mana">
-              Yggdrasil Chat
-            </span>
+          <div className="panel-system-title flex items-center justify-between px-3 py-2 flex-shrink-0">
+            <span>Yggdrasil Chat</span>
             <button
               type="button"
               className="pixel-btn"
@@ -210,8 +217,8 @@ export default function ChatWidget() {
 
           {/* Messages */}
           <div
-            className="flex-1 overflow-y-auto p-3 flex flex-col gap-2"
-            style={{ background: "var(--color-bg-deep)", minHeight: 0 }}
+            className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-[--color-bg-deep]"
+            style={{ minHeight: 0 }}
           >
             {messages.length === 0 && !loading && (
               <p className="text-muted text-xs">
@@ -228,24 +235,21 @@ export default function ChatWidget() {
                   style={{ alignItems: isUser ? "flex-end" : "flex-start" }}
                 >
                   <div
-                    className="pixel-border text-xs"
+                    className={`pixel-border text-xs ${
+                      isUser
+                        ? "bg-[--color-bg-surface-hover] text-[--color-text]"
+                        : "bg-[--color-bg] text-[--color-text]"
+                    }`}
                     style={{
                       maxWidth: "85%",
                       padding: "var(--space-2) var(--space-3)",
-                      background: isUser
-                        ? "var(--color-mana)"
-                        : "var(--color-bg-surface)",
-                      color: isUser ? "#fff" : "var(--color-text)",
                       whiteSpace: "pre-wrap",
                     }}
                   >
                     {m.text}
                   </div>
                   {!isUser && m.xpGained ? (
-                    <span
-                      className="text-[10px] mt-1"
-                      style={{ color: "var(--color-xp)" }}
-                    >
+                    <span className="text-[10px] mt-1 text-xp">
                       +{m.xpGained} XP
                       {m.level != null ? ` (nivel ${m.level})` : ""}
                     </span>
@@ -263,8 +267,7 @@ export default function ChatWidget() {
           {/* Input */}
           <form
             onSubmit={sendMessage}
-            className="flex gap-2 p-2"
-            style={{ borderTop: "2px solid var(--color-border)", flexShrink: 0 }}
+            className="flex gap-2 p-2 border-t-2 border-[--color-border] flex-shrink-0"
           >
             <input
               ref={inputRef}
@@ -273,22 +276,12 @@ export default function ChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Escribí un mensaje..."
               disabled={loading}
-              className="flex-1 text-xs"
-              style={{
-                padding: "var(--space-2) var(--space-3)",
-                background: "var(--color-bg)",
-                color: "var(--color-text)",
-                border: "none",
-                boxShadow:
-                  "calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border), var(--pixel-size) 0 0 0 var(--color-border), 0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border), 0 var(--pixel-size) 0 0 var(--color-border)",
-                outline: "none",
-              }}
+              className="flex-1 pixel-input text-xs"
             />
             <button
               type="submit"
               className="pixel-btn pixel-btn-primary"
               disabled={loading || !input.trim()}
-              style={{ fontSize: "12px", padding: "var(--space-2) var(--space-3)" }}
               aria-label="Enviar mensaje"
             >
               ➤
@@ -309,13 +302,12 @@ export default function ChatWidget() {
         >
           <button
             type="button"
-            className="pixel-btn pixel-btn-primary"
+            className="chat-fab pixel-btn"
             onClick={() => setIsOpen((v) => !v)}
             aria-label={isOpen ? "Cerrar chat" : "Abrir chat"}
             style={{
               width: "56px",
               height: "56px",
-              borderRadius: "0",
               fontSize: "24px",
               padding: 0,
               display: "flex",

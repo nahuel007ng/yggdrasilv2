@@ -119,7 +119,7 @@ export default function SavingsCard({ month, year }: SavingsCardProps) {
         <div>
           <p className="text-muted text-xs mb-1">Este mes</p>
           <p
-            className={`text-base font-semibold ${
+            className={`text-base font-semibold text-pixel ${
               monthNet >= 0 ? "text-xp" : "text-hp"
             }`}
           >
@@ -129,7 +129,7 @@ export default function SavingsCard({ month, year }: SavingsCardProps) {
         <div>
           <p className="text-muted text-xs mb-1">Total acumulado</p>
           <p
-            className={`text-base font-semibold ${
+            className={`text-base font-semibold text-pixel ${
               totalNet >= 0 ? "text-xp" : "text-hp"
             }`}
           >

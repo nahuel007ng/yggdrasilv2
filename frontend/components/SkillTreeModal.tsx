@@ -192,39 +192,22 @@ export default function SkillTreeModal({ onClose, unlockedBadges, unlockedTitles
       <div
         aria-hidden="true"
         onClick={onClose}
-        style={{ position: "fixed", inset: 0, zIndex: 90, background: "rgba(0,0,0,0.6)" }}
+        className="fixed inset-0 z-[90] bg-black/70"
       />
       <div
-        className="flex flex-col"
-        style={{
-          position: "fixed",
-          inset: "4px",
-          zIndex: 100,
-          background: "var(--color-bg-deep)",
-          border: "3px solid var(--color-mana)",
-          boxShadow: "0 0 16px rgba(74,158,142,.5)",
-          maxHeight: "100dvh",
-        }}
+        className="panel-system flex flex-col fixed inset-1 z-[100] max-h-[100dvh]"
       >
         {/* Header */}
-        <div
-          className="flex items-center justify-between px-4 py-3 shrink-0"
-          style={{
-            borderBottom: "2px solid var(--color-mana)",
-            background: "var(--color-bg)",
-          }}
-        >
+        <div className="panel-system-title flex items-center justify-between px-4 py-3 shrink-0">
           <div className="flex flex-col">
-            <span className="text-pixel text-xs" style={{ color: "var(--color-mana-light)" }}>
-              SISTEMA — ÁRBOL DE SKILLS
-            </span>
+            <span>SISTEMA — ÁRBOL DE SKILLS</span>
             <span className="text-muted text-[10px]">
               {badgeCount}/44 logros · {titleCount}/14 títulos
             </span>
           </div>
           <button
             type="button"
-            className="pixel-btn"
+            className="pixel-btn text-muted hover:text-hp"
             onClick={onClose}
             aria-label="Cerrar árbol"
           >
@@ -233,7 +216,7 @@ export default function SkillTreeModal({ onClose, unlockedBadges, unlockedTitles
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3" style={{ background: "var(--color-bg-deep)" }}>
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
           {ALL_ROUTE_KEYS.map((route) => (
             <div key={route} className="pixel-card">
               <RouteSection route={route} unlockedBadges={unlockedBadges} unlockedTitles={unlockedTitles} />

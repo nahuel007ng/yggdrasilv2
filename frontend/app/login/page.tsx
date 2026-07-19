@@ -48,10 +48,15 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
-      <div className="pixel-card w-full max-w-sm">
-        <h1 className="text-center text-gold mb-6" style={{ fontSize: "16px" }}>
+      <div className="panel-system w-full max-w-sm p-6">
+        <h1 className="section-title glow-text text-center mb-1">
           Yggdrasil
         </h1>
+        <p className="text-muted text-xs text-center mb-6">
+          Acceso al Sistema
+        </p>
+
+        <h2 className="panel-system-title mb-4">SISTEMA</h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -65,7 +70,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[--color-bg] text-[--color-text] px-3 py-2 outline-none pixel-border text-sm"
+              className="pixel-input"
             />
           </div>
 
@@ -80,7 +85,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[--color-bg] text-[--color-text] px-3 py-2 outline-none pixel-border text-sm"
+              className="pixel-input"
             />
           </div>
 

@@ -20,7 +20,7 @@ export default function XPBar({ totalXp, currentLevel }: XPBarProps) {
     <div className="pixel-card">
       <h3 className="pixel-card-title">Experiencia</h3>
       <div className="flex flex-col gap-3 py-2">
-        <p className="text-mana font-semibold">XP: {totalXp}</p>
+        <p className="text-xp text-pixel">XP: {totalXp}</p>
         <div className="pixel-progress">
           <div
             className="pixel-progress-fill is-xp"

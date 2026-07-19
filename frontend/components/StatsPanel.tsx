@@ -24,13 +24,13 @@ export default function StatsPanel({ currentLevel, badgeCodes, titleCodes }: Sta
               </span>
               <div className="pixel-progress flex-1">
                 <div
-                  className="pixel-progress-fill"
-                  style={{ width: `${widthPct}%`, background: STAT_INFO[k].color }}
+                  className="pixel-progress-fill is-mana"
+                  style={{ width: `${widthPct}%` }}
                 />
               </div>
-              <span className="font-mono text-sm ml-auto shrink-0">
+              <span className="font-mono text-mana text-sm ml-auto shrink-0">
                 {stats[k]}
-                <span className="text-[10px] opacity-60">/{STAT_MAX}</span>
+                <span className="text-muted text-[10px]">/{STAT_MAX}</span>
               </span>
             </div>
           );

@@ -45,9 +45,14 @@ export default function TitleSelector({ unlockedTitles, activeTitle, onChanged }
       <h3 className="pixel-card-title">Título</h3>
       <div className="flex flex-col gap-2 py-1">
         {activeDef ? (
-          <p className={`text-pixel text-xs title-${activeDef.rarity}`}>
-            « {activeDef.name} »
-          </p>
+          <div
+            className="p-2"
+            style={{ boxShadow: "0 0 0 2px var(--color-gold), var(--glow-gold)" }}
+          >
+            <p className={`text-pixel text-xs title-${activeDef.rarity}`}>
+              « {activeDef.name} »
+            </p>
+          </div>
         ) : (
           <p className="text-muted text-xs">Sin título equipado</p>
         )}

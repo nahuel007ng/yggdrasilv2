@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PixelIcon from "@/components/PixelIcon";
 import { formatARS } from "./MonthlySummary";
+import { PALETTE } from "../lib/palette";
 
 const categoryNameToSprite: Record<string, string> = {
   Comida: "cat-comida",
@@ -63,8 +64,6 @@ function formatDateDDMM(dateStr: string): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   return `${dd}/${mm}`;
 }
-
-const WARNING_COLOR = "#f0ad4e";
 
 export default function TransactionList({
   month,
@@ -178,14 +177,14 @@ export default function TransactionList({
                   const rowStyle: React.CSSProperties = isPending
                     ? {
                         opacity: 0.75,
-                        borderLeft: `3px solid ${WARNING_COLOR}`,
+                        borderLeft: `3px solid ${PALETTE.warning}`,
                         fontStyle: "italic",
                       }
                     : {};
                   return (
                     <tr
                       key={t.id}
-                      className="border-b border-[--color-bg-surface-hover]"
+                      className="border-b border-[--color-bg-surface-hover] transition-colors hover:bg-[--color-bg-surface-hover] border-l-2 border-l-transparent hover:border-l-[--color-border-accent] group"
                       style={rowStyle}
                     >
                       <td className="py-2 pr-3">
@@ -194,8 +193,8 @@ export default function TransactionList({
                           {isPending && (
                             <span
                               style={{
-                                background: WARNING_COLOR,
-                                color: "#000",
+                                background: PALETTE.warning,
+                                color: PALETTE.bgDeep,
                                 padding: "1px 6px",
                                 fontSize: "9px",
                                 fontFamily: "var(--font-pixel)",
@@ -210,7 +209,7 @@ export default function TransactionList({
                       </td>
 <td className="py-2 pr-3">
   <div className="flex items-center gap-1">
-    <PixelIcon name={spriteKey} size={20} className="shrink-0" alt={cat?.name ?? "Sin categoria"} />
+    <PixelIcon name={spriteKey} size={20} className="shrink-0 transition-[filter] group-hover:drop-shadow-[0_0_4px_rgba(45,212,191,0.4)]" alt={cat?.name ?? "Sin categoria"} />
     {cat?.name ?? "Sin categoria"}
   </div>
 </td>

@@ -136,7 +136,7 @@ export default function HabitCalendar({
               {DOW_LABELS.map((d) => (
                 <div
                   key={d}
-                  className="text-center text-xs text-muted py-1"
+                  className="text-center text-xs text-muted text-pixel py-1"
                 >
                   {d}
                 </div>
@@ -154,19 +154,31 @@ export default function HabitCalendar({
                 const completed = dayRecords && dayRecords.size > 0;
 
                 let cellClass =
-                  "flex flex-col items-center justify-center py-2 text-xs ";
+                  "flex flex-col items-center justify-center py-2 text-xs border ";
+                const cellStyle: React.CSSProperties = {
+                  backgroundColor: "var(--color-bg)",
+                };
                 if (completed) {
-                  cellClass +=
-                    "bg-[--color-xp]/20 text-xp";
+                  cellClass += "text-xp border-[--color-xp]";
+                  cellStyle.backgroundColor =
+                    "color-mix(in srgb, var(--color-xp) 25%, transparent)";
+                  cellStyle.boxShadow = "var(--glow-xp)";
                 } else if (isFuture) {
-                  cellClass += "bg-[--color-bg-surface] text-muted";
+                  cellClass += "text-muted border-[--color-border]";
                 } else {
-                  cellClass += "bg-[--color-hp]/15 text-hp";
+                  cellClass += "text-hp border-[--color-hp]";
+                  cellStyle.backgroundColor =
+                    "color-mix(in srgb, var(--color-hp) 20%, transparent)";
                 }
-                if (isToday) cellClass += " ring-2 ring-[--color-gold]";
+                if (isToday && !completed) {
+                  cellClass = cellClass
+                    .replace("border-[--color-hp]", "border-[--color-mana]")
+                    .replace("border-[--color-border]", "border-[--color-mana]");
+                  cellStyle.boxShadow = "var(--glow-mana-soft)";
+                }
 
                 return (
-                  <div key={dateStr} className={cellClass}>
+                  <div key={dateStr} className={cellClass} style={cellStyle}>
                     <span>{day}</span>
                     <span>
                       {completed ? (

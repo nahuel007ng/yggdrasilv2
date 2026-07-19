@@ -64,15 +64,20 @@ export default function BadgesGrid({ unlockedTitles }: BadgesGridProps) {
               return (
                 <div
                   key={code}
-                  className="flex flex-col items-center gap-2 p-3 pixel-card"
+                  className="flex flex-col items-center gap-2 p-3 pixel-card pixel-card-hover hover:scale-105 transition-transform"
                   title={def ? def.name : code}
                 >
-                  <PixelIcon
-                    name={badgeToSpriteKey(code)}
-                    size={64}
-                    alt={def ? def.name : code}
-                  />
-                  <span className="text-center text-[10px] text-[--color-text-muted]">
+                  <span
+                    className="shrink-0"
+                    style={{ filter: "drop-shadow(0 0 6px rgba(255, 210, 63, 0.45))" }}
+                  >
+                    <PixelIcon
+                      name={badgeToSpriteKey(code)}
+                      size={64}
+                      alt={def ? def.name : code}
+                    />
+                  </span>
+                  <span className="text-center text-[10px] text-[--color-text]">
                     {def ? def.name : code}
                   </span>
                 </div>

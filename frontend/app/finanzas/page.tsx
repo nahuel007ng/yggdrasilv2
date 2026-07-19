@@ -51,6 +51,7 @@ export default function FinanzasPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <h1 className="section-title glow-text">Finanzas</h1>
       <div className="flex items-center justify-between pixel-card p-3">
         <button
           type="button"

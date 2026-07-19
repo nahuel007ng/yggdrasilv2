@@ -48,19 +48,21 @@ export default function TareasPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <h2 className="section-title">Tareas</h2>
+
       {/* Controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 pixel-card p-3">
         <div className="flex gap-2">
           <button
             type="button"
-            className={viewMode === "list" ? "pixel-btn-primary pixel-btn" : "pixel-btn"}
+            className={viewMode === "list" ? "pixel-btn border border-[--color-border-accent] shadow-[var(--glow-mana-soft)]" : "pixel-btn"}
             onClick={() => setViewMode("list")}
           >
             Lista
           </button>
           <button
             type="button"
-            className={viewMode === "kanban" ? "pixel-btn-primary pixel-btn" : "pixel-btn"}
+            className={viewMode === "kanban" ? "pixel-btn border border-[--color-border-accent] shadow-[var(--glow-mana-soft)]" : "pixel-btn"}
             onClick={() => setViewMode("kanban")}
           >
             Kanban

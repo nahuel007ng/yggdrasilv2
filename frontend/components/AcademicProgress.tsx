@@ -142,11 +142,11 @@ export default function AcademicProgress() {
         <span className="text-pixel text-xs">
           {approvedCount}/{total}
         </span>
-        <span className="text-muted text-xs">{pct}%</span>
+        <span className="text-mana text-xs glow-text">{pct}%</span>
       </div>
       <div className="pixel-progress mb-4">
         <div
-          className="pixel-progress-fill is-xp"
+          className="pixel-progress-fill is-mana"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -158,8 +158,7 @@ export default function AcademicProgress() {
             <button
               key={String(f.value)}
               type="button"
-              className="pixel-btn"
-              style={active ? { background: "var(--color-mana)", color: "#fff" } : undefined}
+              className={active ? "pixel-btn bg-[--color-mana] text-[--color-text-heading]" : "pixel-btn"}
               onClick={() => setYearFilter(f.value)}
             >
               {f.label}
@@ -175,8 +174,7 @@ export default function AcademicProgress() {
             <button
               key={f.value}
               type="button"
-              className="pixel-btn"
-              style={active ? { background: "var(--color-mana)", color: "#fff" } : undefined}
+              className={active ? "pixel-btn bg-[--color-mana] text-[--color-text-heading]" : "pixel-btn"}
               onClick={() => setStatusFilter(f.value)}
             >
               {f.label}
@@ -212,10 +210,7 @@ export default function AcademicProgress() {
                     <span>{meta.icon}</span>
                     {s.name}
                   </span>
-                  <span
-                    className="text-xs"
-                    style={{ color: "var(--color-gold)" }}
-                  >
+                  <span className="text-xs text-gold">
                     {s.status === "aprobada" && s.grade != null
                       ? `Nota: ${s.grade}`
                       : "-"}
@@ -236,10 +231,7 @@ export default function AcademicProgress() {
                       return (
                         <span
                           key={code}
-                          className="text-xs"
-                          style={{
-                            color: ok ? "var(--color-xp)" : "var(--color-hp)",
-                          }}
+                          className={`text-xs ${ok ? "text-xp" : "text-hp"}`}
                         >
                           {req?.name ?? `#${code}`}
                           {ok ? " ✅" : " ❌"}
@@ -247,10 +239,7 @@ export default function AcademicProgress() {
                       );
                     })}
                     {missing.length > 0 && (
-                      <span
-                        className="text-xs"
-                        style={{ color: "var(--color-text-muted)" }}
-                      >
+                      <span className="text-xs text-muted">
                         (faltan {missing.length})
                       </span>
                     )}

@@ -49,7 +49,7 @@ export default function Nav({
         <div className="flex-1" />
         <button
           onClick={signOut}
-          className="flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px] text-hp hover:bg-[--color-bg-surface-hover] hover:text-[--color-text] border-transparent"
+          className="flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px] text-hp hover:bg-[--color-bg-surface-hover] hover:text-[--color-text] border-transparent hover:shadow-[var(--glow-hp)]"
         >
           <PixelIcon name="nav-logout" size={40} className="shrink-0" />
           Salir
@@ -80,7 +80,7 @@ export default function Nav({
       })}
       <button
         onClick={signOut}
-        className="text-xs transition-colors flex items-center gap-1 px-1 py-1 text-hp hover:text-[--color-text]"
+        className="text-xs transition-colors flex items-center gap-1 px-1 py-1 text-hp hover:text-[--color-text] hover:shadow-[var(--glow-hp)]"
       >
         <PixelIcon name="nav-logout" size={32} className="shrink-0" />
         <span className="hidden lg:inline">Salir</span>

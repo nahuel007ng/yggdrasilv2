@@ -285,17 +285,22 @@ function HeroCard({ profile }: { profile: UserProfile }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <AvatarHero
-        avatarLevel={profile.avatar_level || 1}
-        showRankName={false}
-        activeTitle={profile.active_title || null}
-      />
-      <div className="pixel-card">
+      <div
+        style={
+          progress >= 90
+            ? { animation: "pulse-glow 2s ease-in-out infinite" }
+            : undefined
+        }
+      >
+        <AvatarHero
+          avatarLevel={profile.avatar_level || 1}
+          showRankName={false}
+          activeTitle={profile.active_title || null}
+        />
+      </div>
+      <div className="pixel-card pixel-card-hover">
         <div className="flex flex-col items-center gap-1 mb-2 text-center">
-          <span
-            className="text-[--color-text] break-words"
-            style={{ fontSize: "14px" }}
-          >
+          <span className="section-title glow-text break-words">
             {profile.display_name || "Aventurero"} — {getRankName(profile.avatar_level || 1)}
           </span>
           {titleDef && (
@@ -317,7 +322,7 @@ function HeroCard({ profile }: { profile: UserProfile }) {
           />
         </div>
         <div className="flex justify-between items-center mt-2">
-          <p className="text-muted text-xs">
+          <p className="text-xp text-xs">
             {xpInLevel.toLocaleString()} / {xpSpan.toLocaleString()} XP
           </p>
           <Link
@@ -352,7 +357,7 @@ function MoneyCard({
   fmMoney: (n: number) => string;
 }) {
   return (
-    <div className="pixel-card">
+    <div className="pixel-card pixel-card-hover">
       <h3 className="pixel-card-title flex items-center gap-2"><PixelIcon name="nav-finanzas" size={16} /> Disponible</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>
@@ -395,7 +400,7 @@ function HabitsCard({
   loading: boolean;
 }) {
   return (
-    <div className="pixel-card">
+    <div className="pixel-card pixel-card-hover">
       <h3 className="pixel-card-title flex items-center gap-2"><PixelIcon name="nav-habitos" size={16} /> Hábitos hoy</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>
@@ -403,7 +408,7 @@ function HabitsCard({
         <p className="text-muted">No hay hábitos activos</p>
       ) : (
         <div className="flex flex-col gap-1">
-          <p className="text-mana text-sm mb-1">
+          <p className="text-mana text-pixel text-sm mb-1">
             {completed}/{total} completados
           </p>
           <ul className="flex flex-col gap-1">
@@ -444,7 +449,7 @@ function TasksCard({
   loading: boolean;
 }) {
   return (
-    <div className="pixel-card">
+    <div className="pixel-card pixel-card-hover">
       <h3 className="pixel-card-title flex items-center gap-2"><PixelIcon name="nav-tareas" size={16} /> Tareas hoy</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>
@@ -452,7 +457,7 @@ function TasksCard({
         <p className="text-muted flex items-center gap-1">Sin tareas pendientes para hoy <PixelIcon name="celebration" size={16} /></p>
       ) : (
         <div className="flex flex-col gap-1">
-          <p className="text-mana text-sm mb-1">
+          <p className="text-mana text-pixel text-sm mb-1">
             {tasks.length} pendiente{tasks.length === 1 ? "" : "s"}
           </p>
           <ul className="flex flex-col gap-1">
@@ -482,7 +487,7 @@ function UpcomingCard({
   fmMoney: (n: number) => string;
 }) {
   return (
-    <div className="pixel-card">
+    <div className="pixel-card pixel-card-hover">
       <h3 className="pixel-card-title">Próximos pagos/cobros</h3>
       {loading ? (
         <p className="text-muted">Cargando...</p>

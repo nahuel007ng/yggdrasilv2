@@ -71,11 +71,19 @@ export default function AchievementToast({ badges, onDismissAll }: AchievementTo
     <div className="fixed top-4 left-0 right-0 z-50 flex justify-center pointer-events-none">
       <style>{TOAST_CSS}</style>
       <div
-        className={`max-w-md w-[90vw] pixel-border p-4 ${stage === "in" ? "achievement-in" : "achievement-out"}`}
-        style={{ background: "var(--color-bg-surface)" }}
+        className="panel-system max-w-md w-[90vw] p-4"
+        style={{
+          animation:
+            stage === "in"
+              ? "achievement-slide-in 0.5s ease-out forwards, pulse-glow 1.5s ease-in-out 2"
+              : "achievement-slide-out 0.3s ease-in forwards",
+        }}
       >
+        <div className="panel-system-title mb-3">SISTEMA</div>
         <div className="flex items-center gap-3">
-          <span className="text-2xl">🏆</span>
+          <span className="text-2xl" style={{ filter: "drop-shadow(0 0 6px rgba(255, 210, 63, 0.5))" }}>
+            🏆
+          </span>
           <span className="text-pixel text-[10px] text-gold">¡LOGRO DESBLOQUEADO!</span>
         </div>
         <div

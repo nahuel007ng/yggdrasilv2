@@ -25,7 +25,10 @@ export default function AppShell({
           {/* Header */}
           <header
             className="bg-[--color-bg] px-4 md:px-6 py-3 flex items-center"
-            style={{ boxShadow: "0 var(--pixel-size) 0 0 var(--color-border)" }}
+            style={{
+              boxShadow:
+                "0 var(--pixel-size) 0 0 color-mix(in srgb, var(--color-border-accent) 50%, transparent), var(--glow-mana-soft)",
+            }}
           >
             {/* Hamburger — mobile only */}
             <button
@@ -42,7 +45,7 @@ export default function AppShell({
             >
               ☰
             </button>
-            <h1 className="text-lg shrink-0" style={{ color: "var(--color-gold)" }}>
+            <h1 className="text-lg shrink-0 glow-text" style={{ color: "var(--color-gold)" }}>
               Yggdrasil
             </h1>
 
@@ -56,31 +59,13 @@ export default function AppShell({
           {sidebarOpen && (
             <>
               <div
-                className="md:hidden"
-                style={{
-                  position: "fixed",
-                  inset: 0,
-                  background: "rgba(0, 0, 0, 0.5)",
-                  zIndex: 40,
-                }}
+                className="fixed inset-0 bg-black/60 z-40 md:hidden"
                 onClick={() => setSidebarOpen(false)}
                 aria-hidden="true"
               />
               <nav
-                className="md:hidden"
-                style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  bottom: 0,
-                  width: "260px",
-                  background: "var(--color-bg)",
-                  zIndex: 50,
-                  padding: "var(--space-4)",
-                  overflowY: "auto",
-                  boxShadow: "var(--pixel-size) 0 0 0 var(--color-border)",
-                  animation: "sidebar-slide-in 0.2s ease-out",
-                }}
+                className="panel-system fixed top-0 left-0 bottom-0 w-[260px] z-50 p-4 overflow-y-auto md:hidden"
+                style={{ animation: "sidebar-slide-in 0.2s ease-out" }}
                 aria-label="Menú de navegación"
               >
                 <button

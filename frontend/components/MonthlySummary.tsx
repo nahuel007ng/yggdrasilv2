@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import PixelIcon from "@/components/PixelIcon";
+import { PALETTE } from "../lib/palette";
 
 const currencyFormatter = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -42,8 +43,6 @@ interface SummaryState {
   error: string | null;
   loadedKey: string;
 }
-
-const WARNING_COLOR = "#f0ad4e";
 
 export default function MonthlySummary({
   month,
@@ -161,21 +160,24 @@ export default function MonthlySummary({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-muted text-xs mb-1 flex items-center gap-1">Cobrados <PixelIcon name="status-complete" size={12} /></p>
-            <p className="text-xp text-base font-semibold">
+            <p
+              className="text-xp text-base font-semibold text-pixel"
+              style={{ textShadow: "0 0 8px rgba(163, 230, 53, 0.35)" }}
+            >
               {formatARS(state.incomeCompleted)}
             </p>
           </div>
           <div
             style={{
               opacity: 0.85,
-              borderLeft: `3px solid ${WARNING_COLOR}`,
+              borderLeft: `3px solid ${PALETTE.warning}`,
               paddingLeft: "8px",
             }}
           >
             <p className="text-muted text-xs mb-1">Por cobrar ⏳</p>
             <p
-              className="text-base font-semibold"
-              style={{ color: WARNING_COLOR }}
+              className="text-base font-semibold text-pixel"
+              style={{ color: PALETTE.warning }}
             >
               {formatARS(state.incomePending)}
             </p>
@@ -192,21 +194,21 @@ export default function MonthlySummary({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-muted text-xs mb-1 flex items-center gap-1">Pagados <PixelIcon name="status-complete" size={12} /></p>
-            <p className="text-hp text-base font-semibold">
+            <p className="text-hp text-base font-semibold text-pixel">
               {formatARS(state.expenseCompleted)}
             </p>
           </div>
           <div
             style={{
               opacity: 0.85,
-              borderLeft: `3px solid ${WARNING_COLOR}`,
+              borderLeft: `3px solid ${PALETTE.warning}`,
               paddingLeft: "8px",
             }}
           >
             <p className="text-muted text-xs mb-1">Pendientes ⏳</p>
             <p
-              className="text-base font-semibold"
-              style={{ color: WARNING_COLOR }}
+              className="text-base font-semibold text-pixel"
+              style={{ color: PALETTE.warning }}
             >
               {formatARS(state.expensePending)}
             </p>
@@ -224,7 +226,7 @@ export default function MonthlySummary({
           <div>
             <p className="text-muted text-xs mb-1">Real (cobrado - pagado)</p>
             <p
-              className={`text-base font-semibold ${
+              className={`text-base font-semibold text-pixel ${
                 balanceReal >= 0 ? "text-xp" : "text-hp"
               }`}
             >
@@ -234,7 +236,7 @@ export default function MonthlySummary({
           <div>
             <p className="text-muted text-xs mb-1">Proyectado (todo)</p>
             <p
-              className={`text-base font-semibold ${
+              className={`text-base font-semibold text-pixel ${
                 balanceProjected >= 0 ? "text-mana" : "text-hp"
               }`}
             >
@@ -261,6 +263,8 @@ export default function MonthlySummary({
 function BudgetBar({ spent, budget }: { spent: number; budget: number }) {
   const usage =
     budget > 0 ? Math.min(Math.round((spent / budget) * 100), 100) : 0;
+  const fillClass =
+    usage >= 100 ? "is-hp" : usage >= 80 ? "is-gold" : "is-mana";
   return (
     <>
       <p className="text-muted text-xs mb-2">
@@ -268,7 +272,7 @@ function BudgetBar({ spent, budget }: { spent: number; budget: number }) {
       </p>
       <div className="pixel-progress">
         <div
-          className={`pixel-progress-fill ${usage >= 100 ? "is-hp" : "is-xp"}`}
+          className={`pixel-progress-fill ${fillClass}`}
           style={{ width: `${usage}%` }}
         />
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PixelIcon from "@/components/PixelIcon";
 
 interface Quest {
   id: string;
@@ -62,24 +63,38 @@ function QuestItem({ quest }: { quest: Quest }) {
 
   return (
     <div
-      className={`flex flex-col gap-1 p-2 ${quest.is_completed ? "opacity-60" : ""}`}
+      className="flex flex-col gap-1 p-2"
+      style={
+        quest.is_completed
+          ? { background: "var(--color-purple-dim)" }
+          : undefined
+      }
     >
       <div className="flex items-center justify-between gap-2">
         <span
-          className={`text-xs ${quest.is_completed ? "line-through text-muted" : "text-[--color-text]"}`}
+          className={`text-xs flex items-center gap-2 ${quest.is_completed ? "line-through text-muted" : "text-[--color-text]"}`}
         >
-          {quest.is_completed ? "✅" : "⬜"} {quest.description}
+          <PixelIcon
+            name={quest.is_completed ? "status-complete" : "status-pending"}
+            size={14}
+            className="shrink-0"
+          />
+          {quest.description}
         </span>
-        <span className="text-xs text-muted whitespace-nowrap">
-          {quest.is_completed
-            ? `+${quest.xp_reward} XP`
-            : `${progress}/${quest.target_count}`}
-        </span>
+        {quest.is_completed ? (
+          <span className="text-xs text-xp whitespace-nowrap flex items-center gap-1">
+            <PixelIcon name="status-complete" size={14} className="shrink-0" /> +{quest.xp_reward} XP
+          </span>
+        ) : (
+          <span className="text-xs text-muted whitespace-nowrap">
+            {progress}/{quest.target_count}
+          </span>
+        )}
       </div>
       {!quest.is_completed && (
         <div className="pixel-progress" style={{ height: "6px" }}>
           <div
-            className="pixel-progress-fill is-xp"
+            className="pixel-progress-fill is-gold"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

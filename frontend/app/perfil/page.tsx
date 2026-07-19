@@ -8,6 +8,7 @@ import StreaksPanel from "@/components/StreaksPanel";
 import BadgesGrid from "@/components/BadgesGrid";
 import StatsPanel from "@/components/StatsPanel";
 import TitleSelector from "@/components/TitleSelector";
+import WolButton from "@/components/WolButton";
 
 interface UserProfile {
   display_name: string | null;
@@ -100,7 +101,7 @@ export default function PerfilPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-gold">Tu Perfil RPG</h1>
+      <h1 className="section-title glow-text">Tu Perfil RPG</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Columna izquierda: Avatar + Título + XP + Stats (apilados verticalmente) */}
@@ -117,6 +118,7 @@ export default function PerfilPage() {
             activeTitle={profile.active_title}
             onChanged={fetchAll}
           />
+          <WolButton />
           <XPBar totalXp={profile.total_xp} currentLevel={profile.current_level} />
           <StatsPanel
             currentLevel={profile.current_level}

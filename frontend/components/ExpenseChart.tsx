@@ -13,19 +13,7 @@ import {
 } from "recharts";
 import { supabase } from "@/lib/supabase";
 import { formatARS } from "./MonthlySummary";
-
-const RPG_COLORS = [
-  "#e8845a",  // coral
-  "#4a9e8e",  // teal
-  "#f7d51d",  // gold
-  "#92cc41",  // xp green
-  "#e76e55",  // hp red
-  "#6bbfae",  // teal light
-  "#fd9978",  // coral light
-  "#9b59b6",  // purple
-  "#209cee",  // blue
-  "#95a5a6",  // gray
-];
+import { CHART_COLORS, PALETTE } from "../lib/palette";
 
 export interface ExpenseChartProps {
   month: number;
@@ -108,7 +96,7 @@ export default function ExpenseChart({ month, year }: ExpenseChartProps) {
               value: Number(r.amount),
               color:
                 cat?.color ??
-                RPG_COLORS[byCategory.size % RPG_COLORS.length],
+                CHART_COLORS[byCategory.size % CHART_COLORS.length],
             });
           }
         });
@@ -132,7 +120,7 @@ export default function ExpenseChart({ month, year }: ExpenseChartProps) {
     const top = sorted.slice(0, 8);
     const rest = sorted.slice(8);
     const othersValue = rest.reduce((s, d) => s + d.value, 0);
-    return [...top, { name: "Otros", value: othersValue, color: "#95a5a6" }];
+    return [...top, { name: "Otros", value: othersValue, color: CHART_COLORS[CHART_COLORS.length - 1] }];
   })();
 
   return (
@@ -176,9 +164,9 @@ export default function ExpenseChart({ month, year }: ExpenseChartProps) {
               <Tooltip
                 formatter={(value) => formatARS(Number(value))}
                 contentStyle={{
-                  backgroundColor: "var(--color-bg-surface)",
-                  border: "2px solid var(--color-border)",
-                  color: "var(--color-text)",
+                  backgroundColor: PALETTE.bgSurface,
+                  border: `1px solid ${PALETTE.border}`,
+                  color: PALETTE.text,
                   fontFamily: "var(--font-mono)",
                   fontSize: "12px",
                 }}

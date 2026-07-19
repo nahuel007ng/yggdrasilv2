@@ -29,7 +29,7 @@ export default function AvatarCard({
           showRankName={true}
           activeTitle={activeTitle}
         />
-        <p className="text-pixel text-sm text-mana">Nivel {currentLevel}</p>
+        <p className="text-pixel text-sm text-gold">Nivel {currentLevel}</p>
         {displayName && (
           <p className="text-[--color-text] text-center break-words max-w-full">
             {displayName}

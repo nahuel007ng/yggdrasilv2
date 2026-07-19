@@ -1,38 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  /* --- Fondos --- */
-  --color-bg-deep: #1a1e2e;
-  --color-bg: #252a3a;
-  --color-bg-surface: #2d3340;
-  --color-bg-surface-hover: #353b4a;
+  /* Fondos — azul noche profundo */
+  --color-bg-deep: #0d1020;
+  --color-bg: #151a30;
+  --color-bg-surface: #1d2340;
+  --color-bg-surface-hover: #262d4d;
 
-  /* --- Bordes --- */
-  --color-border: #4a5568;
-  --color-border-light: #6b7280;
-  --color-border-accent: #4a9e8e;
+  /* Bordes */
+  --color-border: #39406b;
+  --color-border-light: #525c8f;
+  --color-border-accent: #2dd4bf;
 
-  /* --- Texto --- */
-  --color-text: #e2e8f0;
-  --color-text-muted: #94a3b8;
-  --color-text-heading: #f1f5f9;
+  /* Texto */
+  --color-text: #e6eaf6;
+  --color-text-muted: #8f97b8;
+  --color-text-heading: #f5f7ff;
 
-  /* --- Acentos RPG --- */
-  --color-xp: #92cc41;
-  --color-hp: #e76e55;
-  --color-mana: #4a9e8e;
-  --color-mana-light: #6bbfae;
-  --color-gold: #f7d51d;
-  --color-coral: #e8845a;
-  --color-coral-light: #fd9978;
-  --color-purple: #8b5cf6;
-  --color-purple-dim: rgba(139, 92, 246, 0.3);
+  /* Acentos RPG (evolución neón de la paleta teal+coral) */
+  --color-xp: #a3e635;
+  --color-hp: #ff5470;
+  --color-mana: #2dd4bf;
+  --color-mana-light: #5eead4;
+  --color-gold: #ffd23f;
+  --color-coral: #ff8a5c;
+  --color-coral-light: #ffab85;
+  --color-purple: #a78bfa;
+  --color-purple-dim: rgba(167, 139, 250, 0.28);
+  --color-warning: #f0ad4e;
 
-  /* --- Tipografia --- */
-  --font-pixel: "Press Start 2P", cursive;
+  /* Glows (box-shadow difusa) */
+  --glow-mana: 0 0 12px rgba(45, 212, 191, 0.45);
+  --glow-mana-soft: 0 0 24px rgba(45, 212, 191, 0.18);
+  --glow-gold: 0 0 12px rgba(255, 210, 63, 0.4);
+  --glow-purple: 0 0 12px rgba(167, 139, 250, 0.45);
+  --glow-hp: 0 0 12px rgba(255, 84, 112, 0.45);
+  --glow-xp: 0 0 12px rgba(163, 230, 53, 0.4);
+
+  /* Tipografía */
+  --font-pixel: "Silkscreen", monospace;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* --- Spacing (multiplos de 4) --- */
+  /* Spacing (múltiplos de 4) — sin cambios */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -41,7 +50,7 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* --- Pixel border --- */
+  /* Pixel border */
   --pixel-size: 2px;
 }
 
@@ -51,7 +60,10 @@
 }
 
 body {
-  background: var(--color-bg-deep);
+  background-color: var(--color-bg-deep);
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -10%, rgba(45, 212, 191, 0.07), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 4px);
   color: var(--color-text);
   font-family: var(--font-mono);
   font-size: 14px;
@@ -72,70 +84,92 @@ h3 { font-size: 12px; }
 .pixel-border {
   position: relative;
   box-shadow:
-    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
-    var(--pixel-size) 0 0 0 var(--color-border),
     0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
-    0 var(--pixel-size) 0 0 var(--color-border);
+    0 var(--pixel-size) 0 0 var(--color-border),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border);
 }
 
 .pixel-border-accent {
   box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
+    0 var(--pixel-size) 0 0 var(--color-border-accent),
     calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-accent),
     var(--pixel-size) 0 0 0 var(--color-border-accent),
-    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
-    0 var(--pixel-size) 0 0 var(--color-border-accent);
+    var(--glow-mana-soft);
 }
 
 .pixel-border-error {
   box-shadow:
-    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-hp),
-    var(--pixel-size) 0 0 0 var(--color-hp),
     0 calc(-1 * var(--pixel-size)) 0 0 var(--color-hp),
-    0 var(--pixel-size) 0 0 var(--color-hp);
+    0 var(--pixel-size) 0 0 var(--color-hp),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-hp),
+    var(--pixel-size) 0 0 0 var(--color-hp);
 }
 
 /* --- Pixel card --- */
 .pixel-card {
-  background: var(--color-bg-surface);
+  background-color: var(--color-bg-surface);
   padding: var(--space-4);
   position: relative;
   box-shadow:
-    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
-    var(--pixel-size) 0 0 0 var(--color-border),
     0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
-    0 var(--pixel-size) 0 0 var(--color-border);
+    0 var(--pixel-size) 0 0 var(--color-border),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border);
+  transition: box-shadow 0.2s ease-out, background-color 0.2s ease-out;
+}
+
+/* Variante interactiva para cards clickeables/hover */
+.pixel-card-hover:hover {
+  background-color: var(--color-bg-surface-hover);
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
+    0 var(--pixel-size) 0 0 var(--color-border-accent),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-accent),
+    var(--pixel-size) 0 0 0 var(--color-border-accent),
+    var(--glow-mana);
 }
 
 .pixel-card-title {
   font-family: var(--font-pixel);
   font-size: 11px;
-  color: var(--color-mana-light);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-bottom: var(--space-3);
-  padding-bottom: var(--space-2);
+  letter-spacing: 1px;
+  color: var(--color-mana-light);
+  text-shadow: 0 0 8px rgba(94, 234, 212, 0.35);
   border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 /* --- Pixel button --- */
 .pixel-btn {
   font-family: var(--font-pixel);
   font-size: 10px;
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-bg-surface);
+  text-transform: uppercase;
+  letter-spacing: 1px;
   color: var(--color-text);
+  background-color: var(--color-bg-surface);
+  padding: var(--space-2) var(--space-4);
   cursor: pointer;
   border: none;
   box-shadow:
-    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
-    var(--pixel-size) 0 0 0 var(--color-border),
     0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
-    0 var(--pixel-size) 0 0 var(--color-border);
-  transition: background 0.15s, transform 0.1s;
+    0 var(--pixel-size) 0 0 var(--color-border),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border);
+  transition: background-color 0.15s ease-out, box-shadow 0.15s ease-out, transform 0.1s ease-out;
 }
 
 .pixel-btn:hover {
-  background: var(--color-bg-surface-hover);
+  background-color: var(--color-bg-surface-hover);
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-light),
+    0 var(--pixel-size) 0 0 var(--color-border-light),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-light),
+    var(--pixel-size) 0 0 0 var(--color-border-light),
+    var(--glow-mana-soft);
 }
 
 .pixel-btn:active {
@@ -143,57 +177,137 @@ h3 { font-size: 12px; }
 }
 
 .pixel-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .pixel-btn-primary {
-  background: var(--color-mana);
-  color: #fff;
+  color: var(--color-bg-deep);
+  background-color: var(--color-mana);
   box-shadow:
-    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-mana-light),
-    var(--pixel-size) 0 0 0 var(--color-mana-light),
     0 calc(-1 * var(--pixel-size)) 0 0 var(--color-mana-light),
-    0 var(--pixel-size) 0 0 var(--color-mana-light);
+    0 var(--pixel-size) 0 0 var(--color-mana-light),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-mana-light),
+    var(--pixel-size) 0 0 0 var(--color-mana-light);
 }
 
 .pixel-btn-primary:hover {
-  background: var(--color-mana-light);
+  background-color: var(--color-mana-light);
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-mana-light),
+    0 var(--pixel-size) 0 0 var(--color-mana-light),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-mana-light),
+    var(--pixel-size) 0 0 0 var(--color-mana-light),
+    var(--glow-mana);
+}
+
+/* --- Pixel input (login, chat) --- */
+.pixel-input {
+  width: 100%;
+  background-color: var(--color-bg-deep);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  outline: none;
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
+    0 var(--pixel-size) 0 0 var(--color-border),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border);
+}
+
+.pixel-input:focus {
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
+    0 var(--pixel-size) 0 0 var(--color-border-accent),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-accent),
+    var(--pixel-size) 0 0 0 var(--color-border-accent),
+    var(--glow-mana-soft);
+}
+
+.pixel-input::placeholder {
+  color: var(--color-text-muted);
 }
 
 /* --- Pixel progress bar --- */
 .pixel-progress {
   width: 100%;
   height: 16px;
-  background: var(--color-bg);
+  background-color: var(--color-bg-deep);
   position: relative;
   box-shadow:
-    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
-    var(--pixel-size) 0 0 0 var(--color-border),
     0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border),
-    0 var(--pixel-size) 0 0 var(--color-border);
+    0 var(--pixel-size) 0 0 var(--color-border),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border),
+    var(--pixel-size) 0 0 0 var(--color-border);
+  overflow: hidden;
 }
 
 .pixel-progress-fill {
   height: 100%;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease-out;
 }
 
 .pixel-progress-fill.is-xp {
-  background: var(--color-xp);
+  background-color: var(--color-xp);
+  box-shadow: var(--glow-xp);
 }
 
 .pixel-progress-fill.is-hp {
-  background: var(--color-hp);
+  background-color: var(--color-hp);
+  box-shadow: var(--glow-hp);
 }
 
 .pixel-progress-fill.is-mana {
-  background: var(--color-mana);
+  background-color: var(--color-mana);
+  box-shadow: var(--glow-mana);
 }
 
 .pixel-progress-fill.is-gold {
-  background: var(--color-gold);
+  background-color: var(--color-gold);
+  box-shadow: var(--glow-gold);
 }
+
+/* --- Panel "Sistema" (toasts, modales, paneles flotantes) --- */
+.panel-system {
+  background-color: rgba(29, 35, 64, 0.97); /* --color-bg-surface al 97% */
+  box-shadow:
+    0 calc(-1 * var(--pixel-size)) 0 0 var(--color-border-accent),
+    0 var(--pixel-size) 0 0 var(--color-border-accent),
+    calc(-1 * var(--pixel-size)) 0 0 0 var(--color-border-accent),
+    var(--pixel-size) 0 0 0 var(--color-border-accent),
+    var(--glow-mana);
+}
+
+.panel-system-title {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-mana-light);
+  text-shadow: 0 0 8px rgba(94, 234, 212, 0.4);
+  border-bottom: 1px solid var(--color-border-accent);
+  padding-bottom: var(--space-2);
+}
+
+/* --- Título de sección de vista --- */
+.section-title {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-text-heading);
+  text-shadow: 0 0 10px rgba(45, 212, 191, 0.35);
+}
+
+/* --- Utilidades de glow --- */
+.glow-text { text-shadow: 0 0 10px rgba(45, 212, 191, 0.35); }
+.glow-mana { box-shadow: var(--glow-mana); }
+.glow-gold { box-shadow: var(--glow-gold); }
+.glow-purple { box-shadow: var(--glow-purple); }
+.glow-hp { box-shadow: var(--glow-hp); }
 
 /* --- Semantic text colors --- */
 .text-xp { color: var(--color-xp); }
@@ -221,11 +335,11 @@ h3 { font-size: 12px; }
   border: 2px solid var(--color-bg-deep);
 }
 
-/* --- Nav active state --- */
-.nav-link-active {
-  color: var(--color-gold) !important;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-light);
 }
 
+/* --- Nav active state --- */
 .nav-item {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   position: relative;
@@ -244,6 +358,7 @@ h3 { font-size: 12px; }
 
 .nav-item-active {
   background-color: var(--color-purple-dim);
+  box-shadow: var(--glow-purple);
 }
 
 .nav-item-active::after {
@@ -267,7 +382,8 @@ h3 { font-size: 12px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1a1a2e;
+  background: var(--color-bg);
+  box-shadow: var(--glow-mana-soft);
 }
 
 .avatar-hero-video {
@@ -305,12 +421,18 @@ h3 { font-size: 12px; }
   to { transform: translateX(0); }
 }
 
+/* --- Keyframe para estados "nuevo"/notificación (uso en fases posteriores) --- */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: var(--glow-mana-soft); }
+  50%      { box-shadow: var(--glow-mana); }
+}
+
 /* ── Rarezas de títulos (Gamificación V2.2) ── */
 .title-comun { color: var(--color-text); }
-.title-epico { color: #5b7db1; }
+.title-epico { color: var(--color-mana-light); }
 .title-mitico { color: var(--color-purple); }
 .title-legendario {
-  background: linear-gradient(90deg, #f7d51d, #e8845a, #8b5cf6, #4a9e8e, #f7d51d);
+  background: linear-gradient(90deg, var(--color-gold), var(--color-coral), var(--color-purple), var(--color-mana), var(--color-gold));
   background-size: 300% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -343,7 +465,7 @@ h3 { font-size: 12px; }
 }
 .skill-node--unlocked {
   border: 2px solid var(--color-gold);
-  box-shadow: 0 0 8px rgba(247, 213, 29, 0.4);
+  box-shadow: var(--glow-gold);
   background: var(--color-bg-surface);
 }
 .skill-connector {

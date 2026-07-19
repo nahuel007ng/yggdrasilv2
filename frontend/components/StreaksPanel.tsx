@@ -42,13 +42,17 @@ export default function StreaksPanel() {
               habit.current_streak > 0 ? "bg-[--color-bg-surface-hover]" : ""
             }`}
           >
-            <PixelIcon name="streak-fire" size={20} className="shrink-0" />
             <span
-              className={
-                habit.current_streak > 0 ? "text-xp" : "text-muted"
-              }
+              className="shrink-0"
+              style={{ filter: "drop-shadow(0 0 6px rgba(255, 138, 92, 0.5))" }}
             >
-              {habit.name}: {habit.current_streak} dias
+              <PixelIcon name="streak-fire" size={20} />
+            </span>
+            <span className="flex-1 text-[--color-text]">
+              {habit.name}
+            </span>
+            <span className="text-pixel text-coral">
+              {habit.current_streak} días
             </span>
             <span className="text-muted text-xs ml-auto">
               (record: {habit.longest_streak})

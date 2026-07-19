@@ -38,8 +38,22 @@ export default function TaskCard({ task }: { task: Task }) {
   const isOverdue =
     task.due_date && task.status !== "done" && new Date(task.due_date) < new Date();
 
+  const isUrgentImportant = task.priority === "urgent_important";
+
+  let dueClass = "text-muted";
+  if (task.due_date && task.status !== "done") {
+    const due = new Date(task.due_date);
+    const now = new Date();
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (isOverdue) dueClass = "text-hp";
+    else if (diffDays <= 3) dueClass = "text-gold";
+    else dueClass = "text-muted";
+  }
+
   return (
-    <div className="pixel-card p-3">
+    <div
+      className={`pixel-card pixel-card-hover p-3 ${isUrgentImportant ? "border-[--color-hp] shadow-[var(--glow-hp)]" : ""}`}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -55,8 +69,9 @@ export default function TaskCard({ task }: { task: Task }) {
         </span>
       </div>
       {task.due_date && (
-        <div className={`text-xs mt-2 ${isOverdue ? "text-hp" : "text-muted"}`}>
-          📅 {new Date(task.due_date).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
+        <div className={`text-xs mt-2 ${dueClass}`}>
+          <span className="text-muted">Vence:</span>{" "}
+          {new Date(task.due_date).toLocaleDateString("es-AR", { day: "numeric", month: "short" })}
           {isOverdue && " (vencida)"}
         </div>
       )}

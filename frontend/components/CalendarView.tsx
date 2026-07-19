@@ -60,9 +60,9 @@ const EVENT_META: Record<
   EventType,
   { color: string; emoji: string; label: string }
 > = {
-  reminder: { color: "var(--color-gold)", emoji: "🔔", label: "Recordatorio" },
+  reminder: { color: "var(--color-coral)", emoji: "🔔", label: "Recordatorio" },
   task: { color: "var(--color-mana)", emoji: "📋", label: "Tarea" },
-  finance: { color: "var(--color-xp)", emoji: "💰", label: "Finanzas" },
+  finance: { color: "var(--color-gold)", emoji: "💰", label: "Finanzas" },
   exam: { color: "var(--color-purple)", emoji: "📚", label: "Examen" },
 };
 
@@ -291,19 +291,21 @@ export default function CalendarView() {
         </div>
 
         <div className="flex flex-wrap gap-3 mb-3 text-xs">
-          {(Object.keys(EVENT_META) as EventType[]).map((t) => (
-            <span key={t} className="flex items-center gap-1 text-muted">
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "10px",
-                  height: "10px",
-                  background: EVENT_META[t].color,
-                }}
-              />
-              {EVENT_META[t].emoji} {EVENT_META[t].label}
-            </span>
-          ))}
+          {(Object.keys(EVENT_META) as EventType[]).map((t) => {
+            const meta = EVENT_META[t];
+            return (
+              <span key={t} className="flex items-center gap-1 text-muted">
+                <span
+                  className="inline-block w-2.5 h-2.5"
+                  style={{
+                    backgroundColor: `color-mix(in srgb, ${meta.color} 20%, transparent)`,
+                    border: `1px solid ${meta.color}`,
+                  }}
+                />
+                <span style={{ color: meta.color }}>{meta.emoji}</span> {meta.label}
+              </span>
+            );
+          })}
         </div>
 
         {error && <p className="text-hp">Error: {error}</p>}
@@ -317,7 +319,7 @@ export default function CalendarView() {
               {DOW_LABELS.map((d) => (
                 <div
                   key={d}
-                  className="text-center text-xs text-muted py-1"
+                  className="text-center text-xs text-muted text-pixel py-1"
                 >
                   {d}
                 </div>
@@ -336,16 +338,23 @@ export default function CalendarView() {
                 );
 
                 let cellClass =
-                  "flex flex-col items-center justify-center py-2 text-xs cursor-pointer ";
+                  "flex flex-col items-center justify-center py-2 text-xs cursor-pointer border ";
                 cellClass += isSelected
-                  ? "ring-2 ring-[--color-purple] bg-[--color-bg-surface-hover] "
-                  : "bg-[--color-bg-surface] hover:bg-[--color-bg-surface-hover] ";
-                if (isToday) cellClass += "ring-2 ring-[--color-gold] ";
+                  ? "ring-2 ring-[--color-purple] bg-[--color-bg-surface-hover] border-[--color-border] "
+                  : "bg-[--color-bg] hover:bg-[--color-bg-surface-hover] border-[--color-border] ";
+                const cellStyle: React.CSSProperties = {};
+                if (isToday) {
+                  cellClass = cellClass
+                    .replace("border-[--color-border]", "border-[--color-border-accent]")
+                    .replace("ring-2 ring-[--color-purple]", "ring-2 ring-[--color-border-accent]");
+                  cellStyle.boxShadow = "var(--glow-mana-soft)";
+                }
 
                 return (
                   <div
                     key={ds}
                     className={cellClass}
+                    style={cellStyle}
                     onClick={() => setSelectedDate(ds)}
                     role="button"
                     tabIndex={0}
@@ -363,11 +372,10 @@ export default function CalendarView() {
                           typesPresent.has(t) ? (
                             <span
                               key={t}
+                              className="inline-block w-1.5 h-1.5"
                               style={{
-                                display: "inline-block",
-                                width: "6px",
-                                height: "6px",
-                                background: EVENT_META[t].color,
+                                backgroundColor: EVENT_META[t].color,
+                                boxShadow: `0 0 4px ${EVENT_META[t].color}`,
                               }}
                             />
                           ) : null
@@ -401,15 +409,11 @@ export default function CalendarView() {
               return (
                 <div
                   key={e.id}
-                  className="flex items-start gap-2 pixel-border"
-                  style={{
-                    background: "var(--color-bg)",
-                    padding: "var(--space-2) var(--space-3)",
-                  }}
+                  className="flex items-start gap-2 pixel-border bg-[--color-bg] p-2 px-3"
                 >
                   <span style={{ color: meta.color }}>{meta.emoji}</span>
                   <div className="flex-1">
-                    <div className="text-xs">{e.title}</div>
+                    <div className="text-xs" style={{ color: meta.color }}>{e.title}</div>
                     <div className="text-muted text-[10px] flex gap-2">
                       {e.time && <span>{e.time.slice(0, 5)}</span>}
                       {e.detail && <span>{e.detail}</span>}

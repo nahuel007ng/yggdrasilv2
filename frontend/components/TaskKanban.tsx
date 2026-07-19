@@ -7,9 +7,9 @@ interface TaskKanbanProps {
 }
 
 const COLUMNS = [
-  { key: "todo", label: "Por hacer" },
-  { key: "doing", label: "En progreso" },
-  { key: "done", label: "Hechas" },
+  { key: "todo", label: "Por hacer", colorClass: "text-muted" },
+  { key: "doing", label: "En progreso", colorClass: "text-mana" },
+  { key: "done", label: "Hechas", colorClass: "text-xp" },
 ] as const;
 
 export default function TaskKanban({ tasks }: TaskKanbanProps) {
@@ -20,9 +20,9 @@ export default function TaskKanban({ tasks }: TaskKanbanProps) {
       {COLUMNS.map((col) => {
         const colTasks = nonArchived.filter((t) => t.status === col.key);
         return (
-          <div key={col.key} className="pixel-card p-3">
-            <h4 className="pixel-card-title">
-              {col.label} ({colTasks.length})
+          <div key={col.key} className="p-3 bg-[--color-bg] pixel-border">
+            <h4 className={`text-pixel text-xs mb-2 ${col.colorClass}`}>
+              {col.label} <span className="text-muted">({colTasks.length})</span>
             </h4>
             {colTasks.length === 0 ? (
               <p className="text-muted text-xs">Sin tareas</p>

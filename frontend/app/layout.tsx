@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Press_Start_2P, JetBrains_Mono } from "next/font/google";
+import { Silkscreen, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 import ChatWidget from "@/components/ChatWidget";
 
-const pixelFont = Press_Start_2P({
-  weight: "400",
+const pixelFont = Silkscreen({
+  weight: ["400", "700"],
   subsets: ["latin"],
   variable: "--font-pixel",
 });
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1a1625",
+  themeColor: "#0d1020",
 };
 
 export default function RootLayout({

@@ -77,6 +77,7 @@ export default function HabitosPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <h1 className="section-title glow-text">Hábitos</h1>
       <div className="flex justify-end">
         {shields !== null && <ShieldsIndicator shields={shields} />}
       </div>
