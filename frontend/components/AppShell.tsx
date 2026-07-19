@@ -24,7 +24,7 @@ export default function AppShell({
         <>
           {/* Header */}
           <header
-            className="bg-[--color-bg] px-4 md:px-6 py-3 flex items-center"
+            className="sticky top-0 z-30 bg-[--color-bg] px-4 md:px-6 py-3 flex items-center"
             style={{
               boxShadow:
                 "0 var(--pixel-size) 0 0 color-mix(in srgb, var(--color-border-accent) 50%, transparent), var(--glow-mana-soft)",
