@@ -11,3 +11,4 @@ pydantic-settings==2.*
 python-dotenv==1.*
 apscheduler==3.*
 neonize>=0.4.0
+pylibmagic>=0.5

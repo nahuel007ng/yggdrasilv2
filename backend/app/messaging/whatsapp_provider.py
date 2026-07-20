@@ -34,6 +34,11 @@ class WhatsAppProvider:
         Si hay sesion guardada, reconecta automaticamente.
         """
         try:
+            try:
+                import pylibmagic  # noqa: F401 — provee libmagic en entornos sin la lib del sistema (ej. Render)
+            except ImportError:
+                pass
+
             from neonize.aioze.client import NewAClient
             from neonize.aioze.events import ConnectedEv, MessageEv
 
