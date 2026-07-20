@@ -130,11 +130,15 @@ class WhatsAppProvider:
             for _ in range(60):
                 # is_connected consulta el socket via binding Go (True apenas
                 # connect() levanta, antes del login); el flag .connected solo
-                # se setea tras autenticar y generaria un deadlock con sesion virgen
-                if self._client.is_connected:
+                # se setea tras autenticar y generaria un deadlock con sesion virgen.
+                # OJO: GoCode.__getattr__ envuelve TODO atributo del binding Go en
+                # asyncio.to_thread(...) — is_connected devuelve una corrutina, no
+                # un bool. Hay que awaitearla o siempre da truthy (bug real, cazado
+                # 2026-07-20: cortaba el loop en la 1ra vuelta -> "client is nil").
+                if await self._client.is_connected:
                     break
                 await asyncio.sleep(1)
-            if not self._client.is_connected:
+            if not await self._client.is_connected:
                 logger.warning(
                     "Timeout esperando conexion WhatsApp; no se pudo solicitar pairing code"
                 )
