@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # WhatsApp (neonize)
     whatsapp_enabled: bool = False
     whatsapp_store_path: str = "./whatsapp_session"
+    whatsapp_pair_phone: str | None = None
 
     # App
     debug: bool = False

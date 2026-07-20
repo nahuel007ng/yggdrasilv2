@@ -3,6 +3,8 @@ import logging
 from pathlib import Path
 from typing import Callable, Awaitable
 
+from app.config import settings
+
 logger = logging.getLogger(__name__)
 
 MessageHandlerCallback = Callable[[str, str, str], Awaitable[str]]
@@ -45,7 +47,11 @@ class WhatsAppProvider:
             store_path = Path(self.store_path)
             store_path.mkdir(parents=True, exist_ok=True)
 
-            self._client = NewAClient(str(store_path / "whatsapp_session"))
+            # Chequear sesion previa ANTES de crear el cliente
+            session_file = store_path / "whatsapp_session"
+            use_pairing = not session_file.exists() and bool(settings.whatsapp_pair_phone)
+
+            self._client = NewAClient(str(session_file))
 
             @self._client.event(MessageEv)
             async def on_message(client, event: MessageEv):
@@ -77,9 +83,9 @@ class WhatsAppProvider:
                             "whatsapp",
                         )
                         if response:
-                            from neonize.utils import build_jid
-
-                            recipient = build_jid(source.Sender.User)
+                            # Responder al JID original del chat (preserva el
+                            # server, ej. @lid); send_message acepta el protobuf JID
+                            recipient = source.Chat if source.Chat.User else source.Sender
                             await client.send_message(recipient, response)
                     except Exception:
                         logger.exception("Error procesando mensaje WhatsApp")
@@ -92,6 +98,9 @@ class WhatsAppProvider:
 
             # connect() bloquea hasta desconexion, correrlo en background
             asyncio.create_task(self._run_client())
+
+            if use_pairing:
+                asyncio.create_task(self._request_pairing_code())
 
         except ImportError:
             logger.error(
@@ -110,6 +119,33 @@ class WhatsAppProvider:
             await self._client.idle()
         except Exception:
             logger.exception("WhatsApp client se desconecto")
+
+    async def _request_pairing_code(self) -> None:
+        """Solicita el pairing code para vincular por numero de telefono.
+
+        PairPhone requiere la conexion activa, asi que espera a que connect()
+        levante antes de pedir el codigo.
+        """
+        try:
+            for _ in range(60):
+                # is_connected consulta el socket via binding Go (True apenas
+                # connect() levanta, antes del login); el flag .connected solo
+                # se setea tras autenticar y generaria un deadlock con sesion virgen
+                if self._client.is_connected:
+                    break
+                await asyncio.sleep(1)
+            if not self._client.is_connected:
+                logger.warning(
+                    "Timeout esperando conexion WhatsApp; no se pudo solicitar pairing code"
+                )
+                return
+            code = await self._client.PairPhone(settings.whatsapp_pair_phone, True)
+            logger.info(
+                "WhatsApp pairing code: %s — ingresalo en WhatsApp > Dispositivos vinculados > Vincular con numero de telefono",
+                code,
+            )
+        except Exception:
+            logger.exception("Error solicitando WhatsApp pairing code")
 
     async def stop(self) -> None:
         """Cierra la conexion con WhatsApp."""
@@ -134,13 +170,14 @@ class WhatsAppProvider:
         try:
             from neonize.utils import build_jid
 
-            # recipient_id puede ser 'user@server' o solo el numero
+            # recipient_id puede ser 'user@server' (ej. @lid) o solo el numero;
+            # preservar el server cuando viene incluido
             if "@" in recipient_id:
-                user = recipient_id.split("@")[0]
+                user, server = recipient_id.split("@", 1)
+                jid = build_jid(user, server)
             else:
-                user = recipient_id
+                jid = build_jid(recipient_id)
 
-            jid = build_jid(user)
             await self._client.send_message(jid, text)
         except Exception:
             logger.exception("Error enviando mensaje WhatsApp a %s", recipient_id)

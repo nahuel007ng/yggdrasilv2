@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fondo del design system v2 neon (color-bg de globals.css / themeColor del layout) -->
+    <color name="bg_night">#0d1020</color>
+</resources>
