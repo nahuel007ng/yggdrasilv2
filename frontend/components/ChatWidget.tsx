@@ -73,6 +73,21 @@ export default function ChatWidget() {
     if (isOpen) inputRef.current?.focus();
   }, [isOpen]);
 
+  // Deep-link desde el widget / asistente de Android: si la URL trae ?chat=1,
+  // abrir el panel del chat y enfocar el input (una vez que hay sesión).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!hasSession) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("chat") === "1") {
+      // setState diferido al próximo frame: evita setState sincrónico en el
+      // cuerpo del efecto (react-hooks/set-state-in-effect). El foco lo hace
+      // el useEffect [isOpen] existente tras montar el panel.
+      const frame = requestAnimationFrame(() => setIsOpen(true));
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [hasSession]);
+
   // Prevent body scroll when chat is open on mobile
   useEffect(() => {
     if (isOpen && isMobile) {

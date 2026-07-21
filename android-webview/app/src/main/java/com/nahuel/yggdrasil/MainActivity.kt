@@ -14,9 +14,13 @@ import androidx.activity.OnBackPressedCallback
 class MainActivity : ComponentActivity() {
 
     companion object {
-        // URL de produccion de la webapp (Vercel) — reemplazar por la real
-        const val APP_URL = "https://yggdrasil-webapp.vercel.app/dashboard"
-        val APP_HOST: String = Uri.parse(APP_URL).host ?: ""
+        // Dominio base de la webapp (Vercel) — reemplazar por el real si difiere
+        const val BASE_URL = "https://yggdrasil-webapp.vercel.app"
+        const val APP_URL = "$BASE_URL/dashboard"
+        const val CHAT_URL = "$BASE_URL/dashboard?chat=1"
+        // Extra de Intent con la URL a cargar (widget / asistente)
+        const val EXTRA_URL = "com.nahuel.yggdrasil.EXTRA_URL"
+        val APP_HOST: String = Uri.parse(BASE_URL).host ?: ""
     }
 
     private lateinit var webView: WebView
@@ -67,7 +71,7 @@ class MainActivity : ComponentActivity() {
         })
 
         if (savedInstanceState == null) {
-            webView.loadUrl(APP_URL)
+            webView.loadUrl(intent?.getStringExtra(EXTRA_URL) ?: APP_URL)
         } else {
             webView.restoreState(savedInstanceState)
         }
@@ -76,5 +80,11 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         webView.saveState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.getStringExtra(EXTRA_URL)?.let { webView.loadUrl(it) }
     }
 }

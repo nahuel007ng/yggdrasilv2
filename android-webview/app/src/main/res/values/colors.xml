@@ -2,4 +2,8 @@
 <resources>
     <!-- Fondo del design system v2 neon (color-bg de globals.css / themeColor del layout) -->
     <color name="bg_night">#0d1020</color>
+    <color name="widget_bg">#151a33</color>
+    <color name="widget_border">#2a3566</color>
+    <color name="widget_hint_text">#8a93c2</color>
+    <color name="widget_accent">#5eead4</color>
 </resources>
