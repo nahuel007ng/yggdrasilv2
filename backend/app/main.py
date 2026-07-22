@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.chat import router as chat_router
+from app.api.config import router as config_router
 from app.api.wol import router as wol_router
 from app.config import settings
 from app.messaging.registry import registry
@@ -72,6 +73,7 @@ app.add_middleware(
 )
 
 app.include_router(chat_router)
+app.include_router(config_router)
 app.include_router(wol_router)
 
 

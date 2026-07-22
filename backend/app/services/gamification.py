@@ -1,4 +1,5 @@
 import math
+import time
 
 from app.db.supabase import get_supabase, get_user_id
 from app.models.schemas import ActionType
@@ -7,6 +8,8 @@ from app.models.schemas import ActionType
 # Con 10, nivel 100 ≈ 50,500 XP ≈ 1 año de uso perfecto (~135 XP/día)
 XP_BASE = 10
 
+# Fallback si la fila no existe en xp_config o la DB no responde.
+# La fuente de verdad es la tabla xp_config (editable desde /configuracion).
 XP_REWARDS: dict[ActionType, int] = {
     ActionType.ADD_EXPENSE: 10,
     ActionType.ADD_EXPECTED: 5,
@@ -25,6 +28,61 @@ XP_REWARDS: dict[ActionType, int] = {
     ActionType.GET_RECOMMENDATION: 0,
     ActionType.UNKNOWN: 0,
 }
+
+_xp_config_cache: dict[str, dict] | None = None
+_xp_config_ts: float = 0.0
+_XP_CONFIG_TTL = 60.0
+
+
+def _load_xp_config() -> dict[str, dict]:
+    """Lee xp_config de la DB con caché de TTL corto (editable sin redeploy)."""
+    global _xp_config_cache, _xp_config_ts
+    now = time.time()
+    if _xp_config_cache is None or now - _xp_config_ts > _XP_CONFIG_TTL:
+        rows = get_supabase().table("xp_config").select("*").execute().data
+        _xp_config_cache = {r["action_type"]: r for r in rows}
+        _xp_config_ts = now
+    return _xp_config_cache
+
+
+def invalidate_xp_config_cache() -> None:
+    """La llama la API de config al escribir para que el cambio surta efecto ya."""
+    global _xp_config_cache
+    _xp_config_cache = None
+
+
+def compute_xp(
+    action_type: ActionType | str,
+    quantity: float | None = None,
+    habit: dict | None = None,
+) -> int:
+    """Calcula el XP de una acción leyendo xp_config.
+
+    - Hábitos: binarios. Si el hábito tiene xp_override, ese valor fijo gana.
+    - Acciones con unit_size (LOG_READING/LOG_STUDY): escalan por quantity
+      (minutos) en bloques de unit_size, con tope cap_units.
+    - Resto: XP fijo (xp_per_unit).
+    """
+    if action_type == ActionType.TOGGLE_HABIT and habit and habit.get("xp_override") is not None:
+        return int(habit["xp_override"])
+
+    action = action_type.value if isinstance(action_type, ActionType) else str(action_type)
+    try:
+        cfg = _load_xp_config().get(action)
+    except Exception:
+        cfg = None
+    if cfg is None:
+        return XP_REWARDS.get(action_type, 0)
+
+    base = cfg.get("xp_per_unit") or 0
+    size = cfg.get("unit_size")  # NUMERIC llega como str desde supabase-py
+    cap = cfg.get("cap_units")
+    if size and quantity:
+        units = quantity / float(size)
+        if cap:
+            units = min(units, float(cap))
+        return round(base * units)
+    return int(base)
 
 
 def calculate_level(total_xp: int) -> int:
@@ -50,15 +108,19 @@ async def award_xp(
     action_type: ActionType | str,
     source_id: str | None = None,
     amount_override: int | None = None,
+    quantity: float | None = None,
+    habit: dict | None = None,
 ) -> dict:
     """Registra XP por una accion y actualiza el perfil del usuario.
 
-    Si amount_override está presente, usa ese monto en vez de XP_REWARDS (para quest bonus).
+    Si amount_override está presente, usa ese monto (para quest bonus).
+    quantity (minutos) escala el XP en acciones con unit_size (lectura/estudio).
+    habit es el row del hábito toggleado, para respetar su xp_override.
     """
     if amount_override is not None:
         xp_amount = amount_override
     else:
-        xp_amount = XP_REWARDS.get(action_type, 0)
+        xp_amount = compute_xp(action_type, quantity, habit)
     if xp_amount == 0:
         return {"xp_awarded": 0, "leveled_up": False}
 

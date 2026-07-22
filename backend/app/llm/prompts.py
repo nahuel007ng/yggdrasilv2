@@ -2,12 +2,33 @@
 # el prefix caching de DeepSeek solo matchea prefijos idénticos desde el token 0.
 
 import json
+import re
+import time
+import unicodedata
 from datetime import date, timedelta
 from pathlib import Path
+
+from app.db.supabase import get_supabase
 
 _keywords_path = Path(__file__).parent / "keywords.json"
 with open(_keywords_path, "r", encoding="utf-8") as f:
     KEYWORDS: dict = json.load(f)
+
+# Fallbacks si la DB no responde al construir el prompt (el bot nunca queda sin categorías/hábitos).
+_FALLBACK_CATEGORIES = [
+    "Comida", "Transporte", "Entretenimiento", "Servicios", "Alquiler",
+    "Salud", "Ropa", "Tecnología", "Educación", "Otros",
+]
+_FALLBACK_HABITS = list(KEYWORDS.get("habit_aliases", {}).keys())
+
+
+def _norm(text: str) -> str:
+    """lowercase + sin acentos + sin paréntesis (para matchear alias del JSON con nombres de DB)."""
+    text = re.sub(r"\([^)]*\)", "", text.lower().strip())
+    text = "".join(
+        c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn"
+    )
+    return text.strip()
 
 
 def _build_keywords_section() -> str:
@@ -21,16 +42,65 @@ def _build_keywords_section() -> str:
     return "\n".join(lines)
 
 
-def _build_habits_section() -> str:
-    lines = ["\nHÁBITOS DEL USUARIO (para TOGGLE_HABIT devolvé habit_name EXACTAMENTE como figura acá):"]
-    for habit, aliases in KEYWORDS["habit_aliases"].items():
-        lines.append(f"- {habit} (aliases: {', '.join(aliases)})")
+def _build_habits_lines(habit_names: list[str]) -> str:
+    """Lista los hábitos de la DB; a cada uno le adosa los alias conocidos del JSON si matchean por nombre."""
+    aliases_map = KEYWORDS.get("habit_aliases", {})
+    lines = []
+    for name in habit_names:
+        n = _norm(name)
+        hints = next(
+            (al for key, al in aliases_map.items()
+             if al and (_norm(key) in n or n in _norm(key))),
+            None,
+        )
+        lines.append(f"- {name} (aliases: {', '.join(hints)})" if hints else f"- {name}")
     return "\n".join(lines)
+
+
+# --- Catálogo dinámico (categorías + hábitos) leído de la DB, con caché de TTL corto ---
+_catalog_cache: dict[str, list[str]] | None = None
+_catalog_ts: float = 0.0
+_CATALOG_TTL = 60.0
+
+
+def _load_catalog() -> dict[str, list[str]]:
+    """Lee las categorías de gasto y los hábitos vigentes de la DB (cacheado, editable sin redeploy)."""
+    global _catalog_cache, _catalog_ts
+    now = time.time()
+    if _catalog_cache is None or now - _catalog_ts > _CATALOG_TTL:
+        try:
+            sb = get_supabase()
+            cats = sb.table("categories").select("name").eq("type", "expense").order("name").execute().data
+            habs = sb.table("habits").select("name").eq("is_archived", False).order("name").execute().data
+            _catalog_cache = {
+                "categories": [c["name"] for c in cats] or _FALLBACK_CATEGORIES,
+                "habits": [h["name"] for h in habs] or _FALLBACK_HABITS,
+            }
+        except Exception:
+            _catalog_cache = {"categories": _FALLBACK_CATEGORIES, "habits": _FALLBACK_HABITS}
+        _catalog_ts = now
+    return _catalog_cache
+
+
+def invalidate_catalog_cache() -> None:
+    """La llama la API de config al crear/editar/borrar categorías o hábitos (efecto inmediato)."""
+    global _catalog_cache
+    _catalog_cache = None
+
+
+def _build_catalog_section(categories: list[str], habit_names: list[str]) -> str:
+    """Bloque DINÁMICO (va al final del prompt): categorías y hábitos vigentes de la DB."""
+    cat_lines = "\n".join(f"- {c}" for c in categories)
+    return (
+        "\nCATEGORÍAS DE GASTOS (usar la más cercana de esta lista):\n"
+        f"{cat_lines}\n"
+        "\nHÁBITOS DEL USUARIO (para TOGGLE_HABIT devolvé habit_name EXACTAMENTE como figura acá):\n"
+        f"{_build_habits_lines(habit_names)}"
+    )
 
 
 def _build_static_prompt() -> str:
     keywords_section = _build_keywords_section()
-    habits_section = _build_habits_section()
     return f"""Sos un asistente de organización personal. Tu ÚNICA tarea es parsear mensajes del usuario y devolver un JSON estructurado.
 
 ACCIONES VÁLIDAS:
@@ -131,21 +201,9 @@ ACCIONES VÁLIDAS:
     - "¿Dónde podría reducir gastos?" → {{"action": "GET_RECOMMENDATION", "payload": {{"topic": "finance", "original_question": "¿Dónde podría reducir gastos?"}}}}
     - "¿En qué estoy gastando de más?" → {{"action": "GET_RECOMMENDATION", "payload": {{"topic": "finance", "original_question": "¿En qué estoy gastando de más?"}}}}
 
-CATEGORÍAS DE GASTOS (usar la más cercana):
-- Comida
-- Transporte
-- Entretenimiento
-- Servicios
-- Alquiler
-- Salud
-- Ropa
-- Tecnología
-- Educación
-- Otros
+CATEGORÍAS DE GASTOS: la lista disponible se detalla AL FINAL de este prompt (usá la más cercana de esa lista).
 
 {keywords_section}
-
-{habits_section}
 
 REGLAS:
 - Respondé SOLO con un JSON válido, sin texto antes ni después.
@@ -218,4 +276,6 @@ _STATIC_PROMPT = _build_static_prompt()
 def get_system_prompt() -> str:
     today = date.today().isoformat()
     yesterday = (date.today() - timedelta(days=1)).isoformat()
-    return f"{_STATIC_PROMPT}\n\nFECHA DE HOY: {today}\nFECHA DE AYER: {yesterday}"
+    catalog = _load_catalog()
+    catalog_section = _build_catalog_section(catalog["categories"], catalog["habits"])
+    return f"{_STATIC_PROMPT}\n{catalog_section}\n\nFECHA DE HOY: {today}\nFECHA DE AYER: {yesterday}"

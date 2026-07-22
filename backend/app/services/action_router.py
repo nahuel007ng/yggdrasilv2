@@ -209,7 +209,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             result = await toggle_habit(parsed.payload)
             if result["success"]:
                 msg = f"{replies.prefix()} Hábito completado: {result['habit_name']} ({result['date']})."
-                xp_result = await award_xp(parsed.action)
+                xp_result = await award_xp(parsed.action, source_id=result["habit_id"], habit=result.get("habit"))
                 msg += _format_xp_feedback(xp_result)
                 msg += _format_streak_feedback(result)
                 badges = await check_and_award_badges(
@@ -246,7 +246,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                     msg = f"{replies.prefix()} Has forjado {result['duration_minutes']} min de estudio de {result['subject']}."
                 else:
                     msg = f"{replies.prefix()} Sesión de estudio registrada: {result['subject']}."
-                xp_result = await award_xp(parsed.action)
+                xp_result = await award_xp(parsed.action, quantity=result.get("duration_minutes"))
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(
                     action_type=parsed.action,
@@ -347,7 +347,7 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
             if result["success"]:
                 book_part = f" de «{result['book_title']}»" if result.get("book_title") else ""
                 msg = f"{replies.prefix()} 📖 {result['duration_minutes']} min de lectura absorbidos de los pergaminos{book_part}."
-                xp_result = await award_xp(parsed.action)
+                xp_result = await award_xp(parsed.action, quantity=result.get("duration_minutes"))
                 msg += _format_xp_feedback(xp_result)
                 badges = await check_and_award_badges(action_type=parsed.action, xp_result=xp_result)
                 msg += _format_badge_feedback(badges)

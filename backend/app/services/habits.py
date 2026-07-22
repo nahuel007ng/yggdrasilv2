@@ -47,7 +47,7 @@ async def toggle_habit(payload: ParsedPayload) -> dict:
     habit_name = payload.habit_name or ""
     result = (
         supabase.table("habits")
-        .select("id, name")
+        .select("id, name, xp_override")
         .eq("is_archived", False)
         .execute()
     )
@@ -90,6 +90,7 @@ async def toggle_habit(payload: ParsedPayload) -> dict:
         "success": True,
         "habit_id": habit["id"],
         "habit_name": habit["name"],
+        "habit": habit,
         "date": today,
         "streak": streak_result,
         "perfect_week": week_result,

@@ -13,6 +13,7 @@ const links = [
   { href: "/estudios", label: "Estudios", spriteKey: "nav-estudios" },
   { href: "/calendario", label: "Calendario", spriteKey: "nav-calendario" },
   { href: "/perfil", label: "Perfil", spriteKey: "nav-perfil" },
+  { href: "/configuracion", label: "Config", spriteKey: "nav-config" },
 ];
 
 export default function Nav({
