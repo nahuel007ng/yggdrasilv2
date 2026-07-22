@@ -12,7 +12,7 @@ from app.services.savings import add_savings, withdraw_savings
 from app.services.reading import finish_book, log_reading
 from app.services.habits import toggle_habit
 from app.services.tasks import add_task
-from app.services.study import log_study
+from app.services.study import log_study, update_subject
 from app.services.workouts import log_workout
 from app.services.reminders import set_reminder, delete_reminder
 from app.services.queries import query_data
@@ -256,6 +256,26 @@ async def execute_action(parsed, user_id: str | None = None) -> dict:
                 msg += await _track_quests_and_award_bonus(parsed.action.value)
                 return await _build_response(msg, xp_result, badges)
             return await _build_response(f"Error al registrar estudio: {result.get('error', 'desconocido')}, Gran Maestro.")
+
+        elif parsed.action == ActionType.UPDATE_SUBJECT:
+            result = await update_subject(
+                parsed.payload.subject_name,
+                parsed.payload.new_status,
+                parsed.payload.grade,
+            )
+            if result["success"]:
+                # Feedback con el nombre REAL matcheado, para que el usuario confirme la materia.
+                if result["status_changed"] and result["grade_changed"]:
+                    detalle = f"{result['status']} (nota {result['grade']})"
+                elif result["status_changed"]:
+                    detalle = result["status"]
+                else:
+                    detalle = f"nota {result['grade']}"
+                msg = f"{replies.prefix()} 📚 {result['subject']} → {detalle}."
+                if result["status_changed"] and result["status"] == "aprobada":
+                    msg += " ¡Otra conquista en tu senda académica, Gran Maestro!"
+                return await _build_response(msg)
+            return await _build_response(f"Error al actualizar la materia: {result.get('error', 'desconocido')}, Gran Maestro.")
 
         elif parsed.action == ActionType.LOG_WORKOUT:
             result = await log_workout(parsed.payload)

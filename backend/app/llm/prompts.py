@@ -201,6 +201,16 @@ ACCIONES VÁLIDAS:
     - "¿Dónde podría reducir gastos?" → {{"action": "GET_RECOMMENDATION", "payload": {{"topic": "finance", "original_question": "¿Dónde podría reducir gastos?"}}}}
     - "¿En qué estoy gastando de más?" → {{"action": "GET_RECOMMENDATION", "payload": {{"topic": "finance", "original_question": "¿En qué estoy gastando de más?"}}}}
 
+17. UPDATE_SUBJECT — El usuario aprueba una materia, carga una nota, o cambia el estado de cursada.
+    Campos: subject_name (nombre REAL de la materia — mapeá alias con ALIAS DE MATERIAS),
+    new_status ("aprobada" | "cursando" | "pendiente", opcional), grade (nota entera, solo si la menciona)
+    Ejemplos:
+    - "aprobé Análisis I con 8" → {{"action": "UPDATE_SUBJECT", "payload": {{"subject_name": "Analisis Matematico I", "new_status": "aprobada", "grade": 8}}}}
+    - "aprobé álgebra con 7" → {{"subject_name": "Algebra", "new_status": "aprobada", "grade": 7}}
+    - "estoy cursando programación II" → {{"subject_name": "Programacion II", "new_status": "cursando"}}
+    - "me inscribí a geometría" → {{"subject_name": "Geometria", "new_status": "cursando"}}
+    - "me saqué un 9 en probabilidad" → {{"subject_name": "Probabilidad", "grade": 9}}
+
 CATEGORÍAS DE GASTOS: la lista disponible se detalla AL FINAL de este prompt (usá la más cercana de esa lista).
 
 {keywords_section}
@@ -219,6 +229,7 @@ REGLAS:
 - CONFIRM_TRANSACTION: solo aplica cuando el usuario responde a un recordatorio de transacción pendiente (ej. "sí, cobré" o "no, no se concretó"). Si hay un transaction_id en el contexto, incluirlo.
 - DIFERENCIA TOGGLE_HABIT vs LOG_WORKOUT: si el usuario dice algo genérico como "hice ejercicio", "entrené", "fui al gym" SIN detallar ejercicios, es TOGGLE_HABIT. Si menciona ejercicios específicos con sets/reps/peso (ej. "hice 3x10 flexiones"), es LOG_WORKOUT.
 - Si dice "estudié X" donde X es una materia o alias de materia, es LOG_STUDY. Mapeá el alias al nombre completo de la materia (ver ALIAS DE MATERIAS arriba). Si dice "tengo que estudiar X", es ADD_TASK.
+- "aprobé X", "me saqué N en X", "estoy cursando X", "me inscribí a X" → UPDATE_SUBJECT (X es una materia; mapeá el alias al nombre real). DIFERENCIA con LOG_STUDY: estudiar registra tiempo; aprobar/cursar cambia el estado de la materia. grade solo si menciona la nota; new_status solo aprobada/cursando/pendiente.
 - "recordame" o "acordate" siempre es SET_REMINDER.
 - "borrá", "eliminá", "cancelá" + "recordatorio/reminder" → DELETE_REMINDER.
 - "qué recordatorios tengo", "mis recordatorios", "recordatorios pendientes" → QUERY_DATA con query_target "reminders".
@@ -234,7 +245,7 @@ REGLAS:
 
 FORMATO DE RESPUESTA:
 {{
-  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | DELETE_REMINDER | QUERY_DATA | QUERY_ANALYTICS | GET_RECOMMENDATION | ADD_SAVINGS | WITHDRAW_SAVINGS | LOG_READING | FINISH_BOOK | UNKNOWN",
+  "action": "ADD_EXPENSE | ADD_EXPECTED | CONFIRM_TRANSACTION | TOGGLE_HABIT | ADD_TASK | LOG_STUDY | LOG_WORKOUT | SET_REMINDER | DELETE_REMINDER | QUERY_DATA | QUERY_ANALYTICS | GET_RECOMMENDATION | ADD_SAVINGS | WITHDRAW_SAVINGS | LOG_READING | FINISH_BOOK | UPDATE_SUBJECT | UNKNOWN",
   "payload": {{
     "amount": null,
     "description": null,
@@ -264,7 +275,9 @@ FORMATO DE RESPUESTA:
     "metric": null,
     "target_amount": null,
     "original_question": null,
-    "topic": null
+    "topic": null,
+    "new_status": null,
+    "grade": null
   }},
   "confidence": 0.95
 }}"""

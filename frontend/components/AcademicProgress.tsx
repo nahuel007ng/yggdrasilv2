@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { configApi } from "@/lib/configApi";
 
 type SubjectStatus = "aprobada" | "cursando" | "pendiente";
 
@@ -78,6 +79,11 @@ export default function AcademicProgress() {
   const [error, setError] = useState<string | null>(null);
   const [yearFilter, setYearFilter] = useState<YearFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editStatus, setEditStatus] = useState<SubjectStatus>("pendiente");
+  const [editGrade, setEditGrade] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +112,31 @@ export default function AcademicProgress() {
     if (!subjects) return 0;
     return subjects.filter((s) => s.status === "aprobada").length;
   }, [subjects]);
+
+  const saveEdit = async (id: string) => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const updated = await configApi<Subject>(
+        `/api/academico/subjects/${id}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            status: editStatus,
+            grade: editGrade.trim() === "" ? null : Number(editGrade),
+          }),
+        }
+      );
+      setSubjects((curr) =>
+        curr ? curr.map((x) => (x.id === id ? { ...x, ...updated } : x)) : curr
+      );
+      setEditId(null);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     if (!subjects) return [];
@@ -246,6 +277,70 @@ export default function AcademicProgress() {
                   </div>
                 ) : (
                   <div className="text-muted text-xs mt-1">Sin correlativas</div>
+                )}
+
+                {editId === s.id ? (
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <select
+                      className="pixel-input"
+                      style={{ width: "auto" }}
+                      value={editStatus}
+                      onChange={(e) =>
+                        setEditStatus(e.target.value as SubjectStatus)
+                      }
+                      aria-label="Estado"
+                    >
+                      <option value="aprobada">Aprobada</option>
+                      <option value="cursando">Cursando</option>
+                      <option value="pendiente">Pendiente</option>
+                    </select>
+                    <input
+                      className="pixel-input"
+                      style={{ width: 80 }}
+                      type="number"
+                      min={1}
+                      max={10}
+                      placeholder="Nota"
+                      value={editGrade}
+                      onChange={(e) => setEditGrade(e.target.value)}
+                      aria-label="Nota"
+                    />
+                    <button
+                      type="button"
+                      className="pixel-btn pixel-btn-primary"
+                      disabled={saving}
+                      onClick={() => saveEdit(s.id)}
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      className="pixel-btn"
+                      onClick={() => setEditId(null)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex justify-end mt-1">
+                    <button
+                      type="button"
+                      className="pixel-btn"
+                      onClick={() => {
+                        setEditId(s.id);
+                        setEditStatus(
+                          (s.status ?? "pendiente") as SubjectStatus
+                        );
+                        setEditGrade(s.grade == null ? "" : String(s.grade));
+                        setSaveError(null);
+                      }}
+                    >
+                      Editar
+                    </button>
+                  </div>
+                )}
+                {saveError && editId === s.id && (
+                  <p className="text-hp text-xs mt-1">{saveError}</p>
                 )}
               </div>
             );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AcademicProgress from "@/components/AcademicProgress";
+import ExamsPanel from "@/components/ExamsPanel";
 import SubjectProgress from "@/components/SubjectProgress";
 import StudyCalendar from "@/components/StudyCalendar";
 import StudyStats from "@/components/StudyStats";
@@ -77,6 +78,8 @@ export default function EstudiosPage() {
       <StudyStats month={month} year={year} />
 
       <AcademicProgress />
+
+      <ExamsPanel />
 
       <SubjectProgress />
 

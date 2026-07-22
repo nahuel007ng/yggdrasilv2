@@ -21,6 +21,7 @@ class ActionType(str, Enum):
     FINISH_BOOK = "FINISH_BOOK"
     QUERY_ANALYTICS = "QUERY_ANALYTICS"
     GET_RECOMMENDATION = "GET_RECOMMENDATION"
+    UPDATE_SUBJECT = "UPDATE_SUBJECT"
     UNKNOWN = "UNKNOWN"
 
 
@@ -79,6 +80,10 @@ class ParsedPayload(BaseModel):
 
     # GET_RECOMMENDATION
     topic: Optional[str] = None
+
+    # UPDATE_SUBJECT (subject_name se comparte con LOG_STUDY)
+    new_status: Optional[str] = None  # 'aprobada' | 'cursando' | 'pendiente'
+    grade: Optional[int] = None
 
 
 class ParsedAction(BaseModel):

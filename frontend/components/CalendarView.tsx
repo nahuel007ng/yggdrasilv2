@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-type EventType = "reminder" | "task" | "finance" | "exam";
+type EventType = "reminder" | "task" | "finance" | "exam" | "exam_real";
 
 interface CalendarEvent {
   id: string;
@@ -39,6 +39,21 @@ interface TransactionRow {
   type: string;
 }
 
+interface ExamRow {
+  id: string;
+  date: string | null;
+  type: string;
+  grade: number | null;
+  subjects: { name: string } | { name: string }[] | null;
+}
+
+const EXAM_TYPE_LABELS: Record<string, string> = {
+  parcial: "Parcial",
+  tp: "TP",
+  final: "Final",
+  otro: "Otro",
+};
+
 const MONTH_NAMES = [
   "Enero",
   "Febrero",
@@ -64,6 +79,7 @@ const EVENT_META: Record<
   task: { color: "var(--color-mana)", emoji: "📋", label: "Tarea" },
   finance: { color: "var(--color-gold)", emoji: "💰", label: "Finanzas" },
   exam: { color: "var(--color-purple)", emoji: "📚", label: "Examen" },
+  exam_real: { color: "var(--color-warning)", emoji: "📝", label: "Examen (fecha)" },
 };
 
 const EXAM_PERIODS = [
@@ -136,10 +152,16 @@ export default function CalendarView() {
         .from("subjects")
         .select("id, name, status")
         .eq("status", "cursando"),
-    ]).then(([rRes, tRes, txRes, sRes]) => {
+      supabase
+        .from("exams")
+        .select("id, date, type, grade, subjects(name)")
+        .not("date", "is", null)
+        .gte("date", startOfMonth)
+        .lte("date", endOfMonth),
+    ]).then(([rRes, tRes, txRes, sRes, eRes]) => {
       if (cancelled) return;
       const err =
-        rRes.error || tRes.error || txRes.error || sRes.error;
+        rRes.error || tRes.error || txRes.error || sRes.error || eRes.error;
       if (err) {
         setError(err.message);
         return;
@@ -148,6 +170,7 @@ export default function CalendarView() {
       const reminders = (rRes.data ?? []) as ReminderRow[];
       const tasks = (tRes.data ?? []) as TaskRow[];
       const transactions = (txRes.data ?? []) as TransactionRow[];
+      const exams = (eRes.data ?? []) as ExamRow[];
 
       const evs: CalendarEvent[] = [];
 
@@ -181,6 +204,21 @@ export default function CalendarView() {
           title: tx.description || "Transaccion",
           type: "finance",
           detail: `$${Number(tx.amount).toLocaleString()}`,
+        });
+      });
+
+      // Exámenes reales (tabla exams): fechas concretas. Distinto de EXAM_PERIODS
+      // (rangos genéricos hardcodeados, tipo "exam") — conviven, no se mezclan.
+      exams.forEach((x) => {
+        if (!x.date) return;
+        const subj = Array.isArray(x.subjects) ? x.subjects[0] : x.subjects;
+        const subjName = subj?.name ?? "Examen";
+        evs.push({
+          id: x.id,
+          date: x.date,
+          title: `${subjName} (${EXAM_TYPE_LABELS[x.type] ?? x.type})`,
+          type: "exam_real",
+          detail: x.grade != null ? `Nota: ${x.grade}` : undefined,
         });
       });
 
