@@ -12,6 +12,7 @@ const links = [
   { href: "/tareas", label: "Tareas", spriteKey: "nav-tareas" },
   { href: "/estudios", label: "Estudios", spriteKey: "nav-estudios" },
   { href: "/calendario", label: "Calendario", spriteKey: "nav-calendario" },
+  { href: "/biblioteca", label: "Biblioteca", spriteKey: "nav-biblioteca" },
   { href: "/perfil", label: "Perfil", spriteKey: "nav-perfil" },
   { href: "/configuracion", label: "Config", spriteKey: "nav-config" },
 ];

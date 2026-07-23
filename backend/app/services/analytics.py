@@ -175,7 +175,7 @@ async def reading_stats() -> dict:
         supabase.table("books")
         .select("title, category, author")
         .eq("user_id", user_id)
-        .eq("status", "terminado")
+        .eq("status", "leido")
         .execute()
     )
 

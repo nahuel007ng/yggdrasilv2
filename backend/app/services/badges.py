@@ -432,7 +432,7 @@ async def _check_badge_condition(
         category, needed = BOOK_CATEGORY_BADGES[badge_code]
         result = (
             supabase.table("books").select("id", count="exact")
-            .eq("status", "terminado").eq("category", category).execute()
+            .eq("status", "leido").eq("category", category).execute()
         )
         return (result.count or 0) >= needed
 

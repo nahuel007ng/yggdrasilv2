@@ -38,7 +38,7 @@ async def log_reading(payload: ParsedPayload) -> dict:
                 "user_id": get_user_id(),
                 "title": book_title,
                 "category": "otro",
-                "status": "leyendo",
+                "status": "en_curso",
             }).execute()
             book_id = created.data[0]["id"]
 
@@ -68,7 +68,7 @@ async def finish_book(payload: ParsedPayload) -> dict:
         .ilike("title", title).limit(1).execute()
     )
     finished_at = datetime.now(timezone.utc).isoformat()
-    now_fields = {"status": "terminado", "finished_at": finished_at, "category": category}
+    now_fields = {"status": "leido", "finished_at": finished_at, "category": category}
     if existing.data:
         supabase.table("books").update(now_fields).eq("id", existing.data[0]["id"]).execute()
     else:
@@ -77,7 +77,7 @@ async def finish_book(payload: ParsedPayload) -> dict:
             "title": title,
             "author": payload.author,
             "category": category,
-            "status": "terminado",
+            "status": "leido",
             "finished_at": finished_at,
         }).execute()
     return {"success": True, "title": title, "category": category}

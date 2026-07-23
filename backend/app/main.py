@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.academico import router as academico_router
+from app.api.biblioteca import router as biblioteca_router
 from app.api.chat import router as chat_router
 from app.api.config import router as config_router
 from app.api.wol import router as wol_router
@@ -74,6 +75,7 @@ app.add_middleware(
 )
 
 app.include_router(academico_router)
+app.include_router(biblioteca_router)
 app.include_router(chat_router)
 app.include_router(config_router)
 app.include_router(wol_router)
