@@ -7,9 +7,7 @@ import PixelIcon from "@/components/PixelIcon";
 
 const links = [
   { href: "/dashboard", label: "Dashboard", spriteKey: "nav-dashboard" },
-  { href: "/habitos", label: "Habitos", spriteKey: "nav-habitos" },
   { href: "/finanzas", label: "Finanzas", spriteKey: "nav-finanzas" },
-  { href: "/tareas", label: "Tareas", spriteKey: "nav-tareas" },
   { href: "/estudios", label: "Estudios", spriteKey: "nav-estudios" },
   { href: "/calendario", label: "Calendario", spriteKey: "nav-calendario" },
   { href: "/biblioteca", label: "Biblioteca", spriteKey: "nav-biblioteca" },

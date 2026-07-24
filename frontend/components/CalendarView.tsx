@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-type EventType = "reminder" | "task" | "finance" | "exam" | "exam_real";
+type EventType = "reminder" | "task" | "finance" | "exam" | "exam_real" | "habit";
 
 interface CalendarEvent {
   id: string;
@@ -47,6 +47,12 @@ interface ExamRow {
   subjects: { name: string } | { name: string }[] | null;
 }
 
+interface HabitRecordRow {
+  date: string;
+  habit_id: string;
+  completed: boolean;
+}
+
 const EXAM_TYPE_LABELS: Record<string, string> = {
   parcial: "Parcial",
   tp: "TP",
@@ -80,6 +86,7 @@ const EVENT_META: Record<
   finance: { color: "var(--color-gold)", emoji: "💰", label: "Finanzas" },
   exam: { color: "var(--color-purple)", emoji: "📚", label: "Examen" },
   exam_real: { color: "var(--color-warning)", emoji: "📝", label: "Examen (fecha)" },
+  habit: { color: "var(--color-xp)", emoji: "✅", label: "Hábitos" },
 };
 
 const EXAM_PERIODS = [
@@ -149,19 +156,21 @@ export default function CalendarView() {
         .gte("expected_date", startOfMonth)
         .lte("expected_date", endOfMonth),
       supabase
-        .from("subjects")
-        .select("id, name, status")
-        .eq("status", "cursando"),
-      supabase
         .from("exams")
         .select("id, date, type, grade, subjects(name)")
         .not("date", "is", null)
         .gte("date", startOfMonth)
         .lte("date", endOfMonth),
-    ]).then(([rRes, tRes, txRes, sRes, eRes]) => {
+      supabase
+        .from("habit_records")
+        .select("date, habit_id, completed")
+        .eq("completed", true)
+        .gte("date", startOfMonth)
+        .lte("date", endOfMonth),
+    ]).then(([rRes, tRes, txRes, eRes, hRes]) => {
       if (cancelled) return;
       const err =
-        rRes.error || tRes.error || txRes.error || sRes.error || eRes.error;
+        rRes.error || tRes.error || txRes.error || eRes.error || hRes.error;
       if (err) {
         setError(err.message);
         return;
@@ -171,6 +180,7 @@ export default function CalendarView() {
       const tasks = (tRes.data ?? []) as TaskRow[];
       const transactions = (txRes.data ?? []) as TransactionRow[];
       const exams = (eRes.data ?? []) as ExamRow[];
+      const habitRecords = (hRes.data ?? []) as HabitRecordRow[];
 
       const evs: CalendarEvent[] = [];
 
@@ -236,6 +246,21 @@ export default function CalendarView() {
             });
           }
         }
+      });
+
+      // Hábitos: UN evento agregado por día (no uno por hábito — satura)
+      const habitCountByDate: Record<string, number> = {};
+      habitRecords.forEach((h) => {
+        if (!h.date) return;
+        habitCountByDate[h.date] = (habitCountByDate[h.date] ?? 0) + 1;
+      });
+      Object.entries(habitCountByDate).forEach(([date, count]) => {
+        evs.push({
+          id: `habit-${date}`,
+          date,
+          title: `Hábitos completados: ${count}`,
+          type: "habit",
+        });
       });
 
       setEvents(evs);
