@@ -14,7 +14,7 @@ export default function WolButton() {
     setStatus("sending");
     try {
       const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+        (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
       const res = await fetch(`${backendUrl}/api/wol/wake`, {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },

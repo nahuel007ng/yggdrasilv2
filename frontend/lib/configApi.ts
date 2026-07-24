@@ -9,7 +9,7 @@ export async function configApi<T = unknown>(
     data: { session },
   } = await supabase.auth.getSession();
   const token = session?.access_token;
-  const base = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const base = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
   const res = await fetch(`${base}${path}`, {
     ...init,
     headers: {

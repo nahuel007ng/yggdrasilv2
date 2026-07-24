@@ -126,7 +126,7 @@ export default function ChatWidget() {
       }
 
       const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+        (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
 
       const res = await fetch(`${backendUrl}/api/chat`, {
         method: "POST",
